@@ -119,6 +119,21 @@ def register():
         return {'message': 'An error occurred while registering the user', 'error': str(e)}, 500
 
 
+@app.route('/user/login', methods=['POST'])
+def login():
+    username = request.json['username']
+    password = request.json['password']
+
+    user = User.query.filter_by(username=username).first()
+
+    if not user:
+        return {'message': 'User not found!'}, 404
+
+    if not user.check_password(password):
+        return {'message': 'Invalid password!'}, 401
+
+    return format_user(user)
+
 
 def format_account(account):
     return {

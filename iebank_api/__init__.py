@@ -26,7 +26,7 @@ from iebank_api.models import Account
 
 with app.app_context():
     # We need to add the db column user_id to the account table manually
-    """
+    """ #Ideally, use migrations instead of this
         db.session.execute(text("DROP TABLE IF EXISTS account"))
 
         # Recreate the table with user_id as a foreign key

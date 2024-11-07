@@ -26,7 +26,7 @@ class User(db.Model):
         self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     def check_password(self, password):
-        # Check the password hash with bcrypt
+        # Check the provided password against the stored hash
         return bcrypt.checkpw(password.encode('utf-8'), self.password.encode('utf-8'))
 
     def default_account(self, id):
