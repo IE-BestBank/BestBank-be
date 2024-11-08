@@ -1,5 +1,5 @@
 import pytest
-from iebank_api.models import Account
+from iebank_api.models import Account, User
 from iebank_api import db, app
 
 
@@ -8,7 +8,11 @@ from iebank_api import db, app
 def testing_client(scope='module'):
     with app.app_context():
         db.create_all()
-        account = Account('Test Account', '€', 'Spain')
+        user = User('johndoe', 'mypassword')
+        db.session.add(user)
+        db.session.commit()
+
+        account = Account('Test Account', '€', 'Spain', 1)
         db.session.add(account)
         db.session.commit()
 
