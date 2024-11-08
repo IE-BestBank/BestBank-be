@@ -1,6 +1,6 @@
 from flask import Flask, request
 from iebank_api import db, app
-from iebank_api.models import Account, User
+from iebank_api.models import Account, User, Transaction
 
 @app.route('/')
 def hello_world():
@@ -46,9 +46,9 @@ def get_account(id):
 
 @app.route('/accounts/<int:id>', methods=['PUT'])
 def update_account(id):
+    print("JSON FILE", request.json)
     account = Account.query.get(id)
     account.name = request.json['name']
-    account.country = request.json['country']
     db.session.commit()
     return format_account(account)
 
@@ -61,7 +61,13 @@ def delete_account(id):
 
 
 
-@app.route('/user/register', methods=['POST'])
+@app.route('/users', methods=['GET'])
+def get_users():
+    users = User.query.all()
+    return {'users': [format_user(user) for user in users]}
+
+
+@app.route('/users/register', methods=['POST'])
 def register():
     try:
         username = request.json['username']
@@ -119,7 +125,7 @@ def register():
         return {'message': 'An error occurred while registering the user', 'error': str(e)}, 500
 
 
-@app.route('/user/login', methods=['POST'])
+@app.route('/users/login', methods=['POST'])
 def login():
     username = request.json['username']
     password = request.json['password']
@@ -133,6 +139,78 @@ def login():
         return {'message': 'Invalid password!'}, 401
 
     return format_user(user)
+
+
+
+@app.route('/users/<int:id>', methods=['GET'])
+def get_user_accounts(id):
+    user = User.query.get(id)
+    if not user:
+        return {'message': 'User not found!'}, 404
+
+
+    return format_user(user)
+
+
+@app.route('/transactions', methods=['POST'])
+def make_transaction():
+    sender_account_id = request.json['sender_account_id']
+    receiver_account_id = request.json['receiver_account_id']
+    amount = request.json['amount']
+
+    sender = Account.query.filter_by(account_number=sender_account_id).first()
+    receiver = Account.query.filter_by(account_number=receiver_account_id).first()
+
+    if not sender:
+        return {'message': 'Sender account not found!'}, 404
+
+    if not receiver:
+        return {'message': 'Receiver account not found!'}, 404
+
+    if sender_account_id == receiver_account_id:
+        return {'message': 'Sender and receiver accounts cannot be the same!'}, 400
+
+    if sender.balance < amount:
+        return {'message': 'Insufficient funds!'}, 400
+
+    sender.balance -= amount
+    receiver.balance += amount
+
+    transaction = Transaction(amount=amount, sender_account_id=sender.id, receiver_account_id=receiver.id)
+    db.session.add(transaction)
+    db.session.commit()
+
+    return {'message': 'Transaction successful!'}
+
+
+@app.route('/transactions', methods=['GET'])
+def get_transactions():
+    transactions = Transaction.query.all()
+    return {'transactions': [format_transaction(transaction) for transaction in transactions]}
+
+
+# we need a way to add money to an account, if not its impossible to test the transactions
+@app.route("/deposit", methods=["POST"])
+def make_deposit():
+    account_number = request.json["account_number"]
+    amount = request.json["amount"]
+
+    if not account_number:
+        return {"message": "Account ID is required!"}, 400
+    if not amount:
+        return {"message": "Amount is required!"}, 400
+
+    print("ACCOUNT ID", account_number)
+    account = Account.query.filter_by(account_number=account_number).first()
+
+    if not account:
+        return {"message": "Account not found!"}, 404
+
+    account.balance += amount
+
+    db.session.commit()
+
+    return format_account(account)
 
 
 def format_account(account):
@@ -158,4 +236,17 @@ def format_user(user, accounts=None):
         'username': user.username,
         'created_at': user.created_at,
         'accounts': [format_account(account) for account in accounts]
+    }
+
+
+def format_transaction(transaction):
+    sender_account = Account.query.get(transaction.sender_account_id)
+    receiver_account = Account.query.get(transaction.receiver_account_id)
+
+    return {
+        'id': transaction.id,
+        'amount': transaction.amount,
+        'timestamp': transaction.timestamp,
+        'sender_account': format_account(sender_account),
+        'receiver_account': format_account(receiver_account)
     }

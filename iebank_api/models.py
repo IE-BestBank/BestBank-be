@@ -58,3 +58,26 @@ class Account(db.Model):
         self.status = "Active"
         self.country = country
         self.user_id = user_id
+
+
+
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    amount = db.Column(db.Float, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    # Foreign keys for sender and receiver accounts
+    sender_account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
+    receiver_account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=True)
+
+    # Relationships to access sender and receiver accounts
+    sender_account = db.relationship('Account', foreign_keys=[sender_account_id], backref='sent_transactions')
+    receiver_account = db.relationship('Account', foreign_keys=[receiver_account_id], backref='received_transactions')
+
+    def __repr__(self):
+        return '<Transaction %r>' % self.id
+
+    def __init__(self, amount, sender_account_id, receiver_account_id):
+        self.amount = amount
+        self.sender_account_id = sender_account_id
+        self.receiver_account_id = receiver_account_id
