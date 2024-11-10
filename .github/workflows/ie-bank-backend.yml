@@ -11,8 +11,8 @@ permissions:
   id-token: write
 
 env:
-  BACKEND_WEBAPP_DEV: aguadamillas-be-dev
-  BACKEND_WEBAPP_UAT: aguadamillas-be-uat
+  BACKEND_WEBAPP_DEV: akhreiche-be-dev
+  BACKEND_WEBAPP_UAT: akhreiche-be-uat
 
 jobs:
   build:
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build, deploy-dev]
     environment:
-      name: 'Development'
+      name: 'UAT'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
