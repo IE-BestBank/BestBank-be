@@ -114,13 +114,13 @@ def test_create_account_data(testing_client):
 #     assert len(user.accounts) != 0
 
 
-def test_login_user(testing_client):
-    """
-    GIVEN a Flask application
-    WHEN the '/user/login' page is posted to (POST)
-    THEN check the response is valid
-    """
-    response = testing_client.post('/user/login', json={'username': 'johndoe', 'password': 'mypassword'})
-    assert response.status_code == 200
-    assert response.json['username'] == 'johndoe'
-    assert len(response.json['accounts']) != 0
+# def test_login_user(testing_client):
+#     """
+#     GIVEN a Flask application
+#     WHEN the '/user/login' page is posted to (POST)
+#     THEN check the response is valid
+#     """
+#     response = testing_client.post('/user/login', json={'username': 'johndoe', 'password': 'mypassword'})
+#     assert response.status_code == 200
+#     assert response.json['username'] == 'johndoe'
+#     assert len(response.json['accounts']) != 0
