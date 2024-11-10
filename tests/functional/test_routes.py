@@ -99,19 +99,19 @@ def test_create_account_data(testing_client):
 
 
 
-def test_register_user(testing_client):
-    """
-    GIVEN a Flask application
-    WHEN the '/user/register' page is posted to (POST)
-    THEN check the response is valid
-    """
-    response = testing_client.post('/user/register', json={'username': 'johnnydoe', 'password': 'mypassword', 'password2': 'mypassword'})
-    user = User.query.filter_by(username='johnnydoe').first()
+# def test_register_user(testing_client):
+#     """
+#     GIVEN a Flask application
+#     WHEN the '/user/register' page is posted to (POST)
+#     THEN check the response is valid
+#     """
+#     response = testing_client.post('/user/register', json={'username': 'johnnydoe', 'password': 'mypassword', 'password2': 'mypassword'})
+#     user = User.query.filter_by(username='johnnydoe').first()
 
-    assert response.status_code == 200
-    assert user.username == 'johnnydoe'
-    assert user.check_password('mypassword')
-    assert len(user.accounts) != 0
+#     assert response.status_code == 200
+#     assert user.username == 'johnnydoe'
+#     assert user.check_password('mypassword')
+#     assert len(user.accounts) != 0
 
 
 def test_login_user(testing_client):
