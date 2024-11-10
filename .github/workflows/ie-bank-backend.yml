@@ -11,8 +11,8 @@ permissions:
   id-token: write
 
 env:
-  BACKEND_WEBAPP_DEV: aguadamillas-be-dev
-  BACKEND_WEBAPP_UAT: aguadamillas-be-uat
+  BACKEND_WEBAPP_DEV: akhreiche-be-dev
+  BACKEND_WEBAPP_UAT: akhreiche-be-uat
 
 jobs:
   build:
