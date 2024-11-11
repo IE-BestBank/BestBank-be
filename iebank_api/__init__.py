@@ -24,7 +24,7 @@ elif os.getenv('ENV') == 'uat':
 
 db = SQLAlchemy(app)
 
-from iebank_api.models import Account
+from iebank_api.models import create_default_admin
 
 with app.app_context():
     # We need to add the db column user_id to the account table manually
@@ -49,6 +49,12 @@ with app.app_context():
         db.session.commit()
     """
     db.create_all()
+
+    # Create the default admin user
+    create_default_admin(
+        app.config['DEFAULT_ADMIN_USERNAME'],
+        app.config['DEFAULT_ADMIN_PASSWORD']
+    )
 CORS(app)
 
 from iebank_api import routes

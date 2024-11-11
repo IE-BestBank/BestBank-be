@@ -22,7 +22,7 @@ class User(db.Model):
     def __init__(self, username, password, is_admin=False):
         self.username = username
         self.set_password(password)
-        self.is_admin = False
+        self.is_admin = is_admin
 
     def set_password(self, password):
         self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -88,3 +88,19 @@ class Transaction(db.Model):
         self.amount = amount
         self.sender_account_id = sender_account_id
         self.receiver_account_id = receiver_account_id
+
+
+def create_default_admin(username, password):
+    admin = User.query.filter_by(username=username).first()
+    if not admin:
+        # Create the default admin user
+        admin = User(
+            username=username,
+            password=password,
+            is_admin=True
+        )
+        db.session.add(admin)
+        db.session.commit()
+        print("Default admin account created.")
+    else:
+        print("Admin account already exists.")

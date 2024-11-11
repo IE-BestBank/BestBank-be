@@ -46,7 +46,6 @@ def get_account(id):
 
 @app.route('/accounts/<int:id>', methods=['PUT'])
 def update_account(id):
-    print("JSON FILE", request.json)
     account = Account.query.get(id)
     account.name = request.json['name']
     db.session.commit()
@@ -199,7 +198,6 @@ def make_deposit():
     if not amount:
         return {"message": "Amount is required!"}, 400
 
-    print("ACCOUNT ID", account_number)
     account = Account.query.filter_by(account_number=account_number).first()
 
     if not account:
