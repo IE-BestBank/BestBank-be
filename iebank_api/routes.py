@@ -154,12 +154,12 @@ def get_user_accounts(id):
 
 @app.route('/transactions', methods=['POST'])
 def make_transaction():
-    sender_account_id = request.json['sender_account_id']
-    receiver_account_id = request.json['receiver_account_id']
+    sender_account_number = request.json['sender_account_number']
+    receiver_account_number = request.json['receiver_account_number']
     amount = request.json['amount']
 
-    sender = Account.query.filter_by(account_number=sender_account_id).first()
-    receiver = Account.query.filter_by(account_number=receiver_account_id).first()
+    sender = Account.query.filter_by(account_number=sender_account_number).first()
+    receiver = Account.query.filter_by(account_number=receiver_account_number).first()
 
     if not sender:
         return {'message': 'Sender account not found!'}, 404
@@ -167,14 +167,13 @@ def make_transaction():
     if not receiver:
         return {'message': 'Receiver account not found!'}, 404
 
-    if sender_account_id == receiver_account_id:
+    if sender_account_number == receiver_account_number:
         return {'message': 'Sender and receiver accounts cannot be the same!'}, 400
 
     if sender.balance < amount:
         return {'message': 'Insufficient funds!'}, 400
 
-    sender.balance -= amount
-    receiver.balance += amount
+    sender.transfer(amount, receiver)
 
     transaction = Transaction(amount=amount, sender_account_id=sender.id, receiver_account_id=receiver.id)
     db.session.add(transaction)
@@ -206,7 +205,7 @@ def make_deposit():
     if not account:
         return {"message": "Account not found!"}, 404
 
-    account.balance += amount
+    account.deposit(amount)
 
     db.session.commit()
 
@@ -235,7 +234,8 @@ def format_user(user, accounts=None):
         'id': user.id,
         'username': user.username,
         'created_at': user.created_at,
-        'accounts': [format_account(account) for account in accounts]
+        'accounts': [format_account(account) for account in accounts],
+        'is_admin': user.is_admin
     }
 
 
@@ -250,3 +250,19 @@ def format_transaction(transaction):
         'sender_account': format_account(sender_account),
         'receiver_account': format_account(receiver_account)
     }
+
+    # List of all routes in this file:
+    # 1. GET /
+    # 2. GET /skull
+    # 3. POST /accounts
+    # 4. GET /accounts
+    # 5. GET /accounts/<int:id>
+    # 6. PUT /accounts/<int:id>
+    # 7. DELETE /accounts/<int:id>
+    # 8. GET /users
+    # 9. POST /users/register
+    # 10. POST /users/login
+    # 11. GET /users/<int:id>
+    # 12. POST /transactions
+    # 13. GET /transactions
+    # 14. POST /deposit

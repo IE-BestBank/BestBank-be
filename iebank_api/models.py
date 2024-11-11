@@ -13,14 +13,16 @@ class User(db.Model):
     username = db.Column(db.String(32), nullable=False, unique=True)
     password = db.Column(db.String(32), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
     accounts = db.relationship('Account', backref='user', lazy=True) # each user can hold multiple accounts
 
     def __repr__(self):
         return '<User %r>' % self.username
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, is_admin=False):
         self.username = username
         self.set_password(password)
+        self.is_admin = False
 
     def set_password(self, password):
         self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -59,7 +61,12 @@ class Account(db.Model):
         self.country = country
         self.user_id = user_id
 
+    def deposit(self, amount):
+        self.balance += amount
 
+    def transfer(self, amount, receiver_account: 'Account'):
+        self.balance -= amount
+        receiver_account.balance += amount
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
