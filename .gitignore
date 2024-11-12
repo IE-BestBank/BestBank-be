@@ -6,3 +6,4 @@ __pycache__/
 .db/
 instance/
 .coverage
+.pytest_cache/

@@ -23,6 +23,7 @@ class User(db.Model):
         self.username = username
         self.set_password(password)
         self.is_admin = is_admin
+        self.accounts = [self.default_account()] if not is_admin else []
 
     def set_password(self, password):
         self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -31,8 +32,8 @@ class User(db.Model):
         # Check the provided password against the stored hash
         return bcrypt.checkpw(password.encode('utf-8'), self.password.encode('utf-8'))
 
-    def default_account(self, id):
-        return Account(name=self.username, currency="€", country="Spain", user_id=id)
+    def default_account(self):
+        return Account(name=self.username, currency="€", country="Spain", user_id=self.id)
 
 
 

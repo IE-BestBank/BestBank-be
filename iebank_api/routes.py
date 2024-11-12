@@ -59,69 +59,41 @@ def delete_account(id):
     return format_account(account)
 
 
-
-@app.route('/users', methods=['GET'])
-def get_users():
-    users = User.query.all()
-    return {'users': [format_user(user) for user in users]}
-
-
 @app.route('/users/register', methods=['POST'])
 def register():
-    try:
-        username = request.json['username']
-        password = request.json['password']
-        password2 = request.json['password2']
+    username = request.json['username']
+    password = request.json['password']
+    password2 = request.json['password2']
 
-        # check if all fields are provided
-        if not username:
-            return {'message': 'Username is required!'}, 400
-        if not password:
-            return {'message': 'Password is required!'}, 400
-        if not password2:
-            return {'message': 'Password confirmation is required!'}, 400
+    # check if all fields are provided
+    if not username:
+        return {'message': 'Username is required!'}, 400
+    if not password:
+        return {'message': 'Password is required!'}, 400
+    if not password2:
+        return {'message': 'Password confirmation is required!'}, 400
 
+    if len(username.split(" ")) > 1:
+        return {'message': 'Username cannot have spaces!'}, 400
 
-        # Check if the passwords match
-        if password != password2:
-            return {'message': 'Passwords do not match!'}, 400
-
-
-        # Check if username already exists
-        exists = User.query.filter_by(username=username).first()
-        if exists:
-            return {'message': 'Username already exists!'}, 400
+    # Check if the passwords match
+    if password != password2:
+        return {'message': 'Passwords do not match!'}, 400
 
 
-        # Create the user
-        user = User(username=username, password=password)
-        db.session.add(user)
-        db.session.commit()
 
-        # Create a new account for that user, default is set to USD in Spain
-        """
-            Since we are committing the user to the database before creating the account,
-            if something goes wrong creating the account, we need to delete the user from the database.
-            The reason why we need to create and commit the user before creating the account is because
-            the user's ID needs to be generated to create the account, which only happens when we commit the user.
-        """
-        try:
-            default_account = user.default_account(user.id)
-            db.session.add(default_account)
-            db.session.commit()  # Commit the default account
+    # Check if username already exists
+    exists = User.query.filter_by(username=username).first()
+    if exists:
+        return {'message': 'Username already exists!'}, 400
 
-        except Exception as account_error:
-            # Rollback changes to avoid partial saves and delete the user if account creation fails
-            db.session.rollback()
-            db.session.delete(user)  # Remove the user from the database
-            db.session.commit()
-            return {'message': 'An error occurred while creating the default account', 'error': str(account_error)}, 500
 
-        return format_user(user, [default_account])
+    # Create the user
+    user = User(username=username, password=password)
+    db.session.add(user)
+    db.session.commit()
 
-    except Exception as e:
-        db.session.rollback() # Rollback the session in case of an unexpected error
-        return {'message': 'An error occurred while registering the user', 'error': str(e)}, 500
+    return format_user(user)
 
 
 @app.route('/users/login', methods=['POST'])
@@ -210,6 +182,96 @@ def make_deposit():
     return format_account(account)
 
 
+# ADMIN ROUTES
+@app.route('/admin/users', methods=['POST'])
+def create_user():
+    admin_id = request.json['admin_id']
+    username = request.json['username']
+    password = request.json['password']
+
+    admin = User.query.get(admin_id)
+    if not admin or not admin.is_admin:
+        return {'message': 'Unauthorized access!'}, 401
+
+    if not username:
+        return {'message': 'Username is required!'}, 400
+    if not password:
+        return {'message': 'Password is required!'}, 400
+
+    if len(username.split(" ")) > 1:
+        return {'message': 'Username cannot have spaces!'}, 400
+
+    user = User(username=username, password=password)
+    db.session.add(user)
+    db.session.commit()
+
+    return format_user(user)
+
+
+
+@app.route('/admin/users/<int:id>', methods=['PUT'])
+def update_user(id):
+    admin_id = request.json['admin_id']
+    new_username = request.json['new_username']
+    new_password = request.json['new_password']
+
+    admin = User.query.get(admin_id)
+    if not admin or not admin.is_admin or admin.id == id:
+        return {'message': 'Unauthorized access!'}, 401
+
+    user = User.query.get(id)
+    if not user:
+        return {'message': 'User not found!'}, 404
+
+    if not new_username and not new_password:
+        return {'message': 'No changes provided!'}, 400
+
+    if len(new_username.split(" ")) > 1:
+        return {'message': 'Username cannot have spaces!'}, 400
+
+    if new_username and new_username != user.username:
+        user.username = new_username
+
+    if new_password and new_password != user.password:
+        user.set_password(new_password)
+
+    db.session.commit()
+    return format_user(user)
+
+
+@app.route('/admin/users/<int:id>', methods=['DELETE'])
+def delete_user(id):
+    admin_id = request.json['admin_id']
+
+    admin = User.query.get(admin_id)
+    if not admin or not admin.is_admin or admin.id == id:
+        return {'message': 'Unauthorized access!'}, 401
+
+    user = User.query.get(id)
+    if not user:
+        return {'message': 'User not found!'}, 404
+
+    for account in user.accounts:
+        db.session.delete(account)
+
+    db.session.delete(user)
+    db.session.commit()
+    return {"message": "User deleted successfully!"}
+
+
+@app.route('/admin/users', methods=['GET'])
+def get_users():
+    admin_id = request.json['admin_id']
+
+    admin = User.query.get(admin_id)
+    if not admin or not admin.is_admin:
+        return {'message': 'Unauthorized access!'}, 401
+
+    users = User.query.all()
+
+    return {'users': [format_user(user) for user in users if not user.is_admin]}
+
+
 def format_account(account):
     return {
         'id': account.id,
@@ -248,19 +310,3 @@ def format_transaction(transaction):
         'sender_account': format_account(sender_account),
         'receiver_account': format_account(receiver_account)
     }
-
-    # List of all routes in this file:
-    # 1. GET /
-    # 2. GET /skull
-    # 3. POST /accounts
-    # 4. GET /accounts
-    # 5. GET /accounts/<int:id>
-    # 6. PUT /accounts/<int:id>
-    # 7. DELETE /accounts/<int:id>
-    # 8. GET /users
-    # 9. POST /users/register
-    # 10. POST /users/login
-    # 11. GET /users/<int:id>
-    # 12. POST /transactions
-    # 13. GET /transactions
-    # 14. POST /deposit
