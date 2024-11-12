@@ -11,8 +11,8 @@ permissions:
   id-token: write
 
 env:
-  BACKEND_WEBAPP_DEV: akhreiche-be-dev
-  BACKEND_WEBAPP_UAT: akhreiche-be-uat
+  BACKEND_WEBAPP_DEV: bestbank-be-dev
+  BACKEND_WEBAPP_UAT: bestbank-be-uat
 
 jobs:
   build:
