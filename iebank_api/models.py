@@ -21,11 +21,11 @@ class User(db.Model):
 
     def __init__(self, username, password, is_admin=False):
         self.username = username
-        self.set_password(password)
+        self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         self.is_admin = is_admin
         self.accounts = [self.default_account()] if not is_admin else []
 
-    def set_password(self, password):
+    def set_password(self, password: str):
         self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     def check_password(self, password):
