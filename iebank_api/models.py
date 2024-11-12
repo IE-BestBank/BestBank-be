@@ -7,7 +7,7 @@ import bcrypt # library for hashing passwords
 
 
 class User(db.Model):
-    # __tablename__ = 'user' # This is used to explicitly set the name of the table in the database that will store instances of this class
+    __tablename__ = 'user' # This is used to explicitly set the name of the table in the database that will store instances of this class
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(32), nullable=False, unique=True)
@@ -38,7 +38,7 @@ class User(db.Model):
 
 
 class Account(db.Model):
-
+    __tablename__ = 'account'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), nullable=False)
     account_number = db.Column(db.String(20), nullable=False, unique=True)
@@ -70,6 +70,7 @@ class Account(db.Model):
         receiver_account.balance += amount
 
 class Transaction(db.Model):
+    __tablename__ = 'transaction'
     id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)

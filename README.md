@@ -23,6 +23,7 @@ This is the repository for the backend code of the IE Bank web app
 ## Requirements
 
 This source code works under the following technologies:
+
 - [Python 3.11.5](https://www.python.org/downloads/release/python-3115/)
 - [Flask 2.2.2](https://pypi.org/project/Flask/2.2.2/)
 - [Flask-Cors 3.0.10](https://pypi.org/project/Flask-Cors/3.0.10/)
@@ -33,6 +34,7 @@ This source code works under the following technologies:
 - [SQL Lite 3.43.0](https://www.sqlite.org/download.html)
 
 ## Recommended tutorials
+
 - [Flask](https://flask.palletsprojects.com/en/2.3.x/tutorial/)
 - [Flask on VS Code](https://code.visualstudio.com/docs/python/tutorial-flask)
 - Linkedin Learning: [Building RESTful APIs with Flask](https://www.linkedin.com/learning/building-restful-apis-with-flask/)
@@ -161,6 +163,15 @@ class DevelopmentConfig(Config):
     )
     DEBUG = True
 ```
+
+## Database Migrations
+
+If you have ran the backend before on your computer, most likely you will need to update the database schema instead of creating a new one. To handle these migrations in an efficient way, we set up migrations using Flask-Migrate to take care of this without running sql queries directly. To run the migrations:
+
+1. Start your virtual environenmt: `source .venv/bin/activate` on mac, `./.venv/Scripts/activate` on windows. Note: that ".venv" is the name of your virtual environment.
+2. Install the requirements: `pip install -r requirements.txt`
+3. Run `flask db init` to initialize the db migrations setup. After running this command, a "migrations" folder should be created.
+4. Now, anytime the database schema is updated and needs a migration, run `flask db migrate -m "<migration-message>"`
 
 ## Continuos Delivery
 

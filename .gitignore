@@ -7,3 +7,4 @@ __pycache__/
 instance/
 .coverage
 .pytest_cache/
+migrations/

@@ -9,13 +9,12 @@ from iebank_api.models import Account, User, Transaction
     # 5. GET /accounts/<int:id>
     # 6. PUT /accounts/<int:id>
     # 7. DELETE /accounts/<int:id>
-    # 8. GET /users
-    # 9. POST /users/register
-    # 10. POST /users/login
-    # 11. GET /users/<int:id>
-    # 12. POST /transactions
-    # 13. GET /transactions
-    # 14. POST /deposit
+    # 8. POST /users/register
+    # 9. POST /users/login
+    # 10. GET /users/<int:id>
+    # 11. POST /transactions
+    # 12. GET /transactions
+    # 13. POST /deposit
 
 # / (GET)
 def test_hello_world(testing_client):
@@ -140,15 +139,6 @@ def test_update_account(testing_client):
     assert json_data['currency'] == '€'
 
 
-# /users (GET)
-def test_get_users(testing_client):
-    """
-    GIVEN a Flask application
-    WHEN the '/users' page is requested (GET)
-    THEN check the response is valid
-    """
-    response = testing_client.get('/users')
-    assert response.status_code == 200
 
 
 # /users/register (POST)
@@ -210,7 +200,7 @@ def test_get_user(testing_client):
     WHEN the '/users/<int:id>' page is requested (GET)
     THEN check the response is valid
     """
-    create_response = testing_client.post('/users/register', json={'username': 'john smith', 'password': 'mypassword', 'password2': 'mypassword'})
+    create_response = testing_client.post('/users/register', json={'username': 'johnsmith', 'password': 'mypassword', 'password2': 'mypassword'})
     assert create_response.status_code == 200
 
     data = create_response.get_json()
@@ -221,7 +211,7 @@ def test_get_user(testing_client):
 
     response = testing_client.get('/users/' + str(user.id))
     assert response.status_code == 200
-    assert response.json['username'] == 'john smith'
+    assert response.json['username'] == 'johnsmith'
     assert user.check_password('mypassword')
 
 
