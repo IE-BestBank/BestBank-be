@@ -11,7 +11,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(32), nullable=False, unique=True)
-    password = db.Column(db.String(32), nullable=False)
+    password = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
     accounts = db.relationship('Account', backref='user', lazy=True) # each user can hold multiple accounts
