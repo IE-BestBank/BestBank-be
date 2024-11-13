@@ -93,6 +93,11 @@ def register():
     db.session.add(user)
     db.session.commit()
 
+    default_account = user.default_account()
+    user.add_acount(default_account)
+    db.session.add(default_account)
+    db.session.commit()  # Commit the default account
+
     return format_user(user)
 
 
@@ -204,6 +209,11 @@ def create_user():
     user = User(username=username, password=password)
     db.session.add(user)
     db.session.commit()
+
+    default_account = user.default_account()
+    user.add_acount(default_account)
+    db.session.add(default_account)
+    db.session.commit()  # Commit the default account
 
     return format_user(user)
 
