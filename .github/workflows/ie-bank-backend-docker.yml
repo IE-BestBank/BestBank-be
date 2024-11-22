@@ -8,6 +8,7 @@ on:
 
 
 env:
+    DOCKER_REGISTRY_SERVER_URL: bestbankcontregistrydev.azurecr.io
     BACKEND_WEBAPP_DEV: bestbank-be-dev
     BACKEND_WEBAPP_UAT: bestbank-be-uat
     BACKEND_WEBAPP_PROD: bestbank-be-prod
