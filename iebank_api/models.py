@@ -39,7 +39,6 @@ class User(db.Model):
         return Account(name=self.username, currency="€", country="Spain", user_id=self.id)
 
 
-
 class Account(db.Model):
     __tablename__ = 'account'
     id = db.Column(db.Integer, primary_key=True)
