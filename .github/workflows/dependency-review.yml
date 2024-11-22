@@ -1,0 +1,19 @@
+name: Dependency Review BE
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v2
+        with:
+          # Optional configuration
+          fail-on-severity: critical # Fail PR for critical vulnerabilities
