@@ -55,7 +55,7 @@ jobs:
         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL }}/${{ env.REGISTRY_USERNAME }}/bestbank-be:${{ steps.image-version.outputs.version }}
 
     - name: Upload Docker image info
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: docker-image
         path: |
