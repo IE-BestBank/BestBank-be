@@ -9,7 +9,7 @@ on:
 
 env:
     DOCKER_REGISTRY_SERVER_URL: bestbankcontregistrydev.azurecr.io
-    DOCKER_REGISTRY_NAME: bestbankContRegistryDev
+    DOCKER_REGISTRY_NAME: SWAtoken
     KEY_VAULT_NAME: BestBank-KV-dev
     BACKEND_WEBAPP_DEV: bestbank-be-dev
     BACKEND_WEBAPP_UAT: bestbank-be-uat
@@ -35,8 +35,8 @@ jobs:
       uses: Azure/cli@v2.1.0
       with:
         inlineScript: |
-            echo "REGISTRY_USERNAME=$(az keyvault secret show --name ${{ env.DOCKER_REGISTRY_NAME }} --vault-name ${{ env.KEY_VAULT_NAME }} --query value -o tsv)" >> $GITHUB_ENV
-            echo "REGISTRY_PASSWORD=$(az keyvault secret show --name ${{ env.DOCKER_REGISTRY_NAME }} --vault-name ${{ env.KEY_VAULT_NAME }} --query value -o tsv)" >> $GITHUB_ENV
+            echo "REGISTRY_USERNAME=$(az keyvault secret show --name adminUsernameSecretName --vault-name ${{ env.KEY_VAULT_NAME }} --query value -o tsv)" >> $GITHUB_ENV
+            echo "REGISTRY_PASSWORD=$(az keyvault secret show --name adminPasswordSecretName0 --vault-name ${{ env.KEY_VAULT_NAME }} --query value -o tsv)" >> $GITHUB_ENV
 
     - name: List files in the workspace (Development)
       run: ls -R
