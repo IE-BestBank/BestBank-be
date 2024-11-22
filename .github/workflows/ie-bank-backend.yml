@@ -1,10 +1,10 @@
 name: ie-bank-backend
 
 on:
-  push:
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
+#   push:
+#   pull_request:
+#     branches: [ "main" ]
+  workflow_dispatch: # for now we dont need this
 
 permissions:
   contents: read

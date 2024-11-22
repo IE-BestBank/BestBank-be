@@ -56,7 +56,7 @@ jobs:
     - name: Docker Build and Push
       run: |
         docker build . -t ${{ env.DOCKER_REGISTRY_SERVER_URL }}/bestbank-be:latest # ${{ steps.image-version.outputs.version }}
-        docker push ${{ env.DOCKER_REGISTRY_SERVER_URL }}/bestbank-be:latest # ${{ steps.image-version.outputs.version }}
+        # docker push ${{ env.DOCKER_REGISTRY_SERVER_URL }}/bestbank-be:latest # ${{ steps.image-version.outputs.version }}
 
     - name: Upload Docker image info
       uses: actions/upload-artifact@v4
