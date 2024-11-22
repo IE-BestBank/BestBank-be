@@ -48,6 +48,10 @@ jobs:
         username: ${{ env.REGISTRY_USERNAME }}
         password: ${{ env.REGISTRY_PASSWORD }}
 
+    - name: Print Docker Registry Credentials
+      run: |
+        echo "REGISTRY_USERNAME: ${{ env.REGISTRY_USERNAME }}"
+        echo "REGISTRY_PASSWORD: ${{ env.REGISTRY_PASSWORD }}"
     - name: Set image version
       id: image-version
       run: |
