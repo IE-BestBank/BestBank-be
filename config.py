@@ -23,8 +23,8 @@ class DevelopmentConfig(Config):
     if os.getenv('ENV') == 'dev':
         credential = DefaultAzureCredential()
         SQLALCHEMY_DATABASE_URI = 'postgresql://{dbuser}:{dbpass}@{dbhost}/{dbname}'.format(
-        dbuser=urllib.parse.quote(os.getenv('DBUSER')),
-        dbpass=credential.get_token(
+            dbuser=urllib.parse.quote(os.getenv('DBUSER')),
+            dbpass=credential.get_token(
             'https://ossrdbms-aad.database.windows.net').token,
             dbhost=os.getenv('DBHOST'),
             dbname=os.getenv('DBNAME')
