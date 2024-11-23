@@ -63,6 +63,11 @@ jobs:
         path: |
           .
 
+    - name: "Log in to azure"
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
     - name: "Get docker registry credentials"
       uses: Azure/cli@v2.1.0
       with:
@@ -160,10 +165,10 @@ jobs:
 #     - name: Checkout code
 #       uses: actions/checkout@v4
 
-#     - name: "Log in to azure"
-#       uses: azure/login@v2
-#       with:
-#         creds: ${{ secrets.AZURE_CREDENTIALS }}
+    # - name: "Log in to azure"
+    #   uses: azure/login@v2
+    #   with:
+    #     creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     # - name: "Get docker registry credentials"
     #   uses: Azure/cli@v2.1.0
