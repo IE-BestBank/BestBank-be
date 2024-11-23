@@ -61,8 +61,8 @@ jobs:
 
     - name: Docker Build and Push
       run: |
-        docker build . -t ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/bestbank-be:${{ steps.image-version.outputs.version }}
-        docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/bestbank-be:${{ steps.image-version.outputs.version }}
+        docker build . -t ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/bestbank-be:latest #${{ steps.image-version.outputs.version }}
+        docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/bestbank-be:latest # ${{ steps.image-version.outputs.version }}
 
   build-and-deploy-uat:
     if:  (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main') || github.ref == 'refs/heads/main'
