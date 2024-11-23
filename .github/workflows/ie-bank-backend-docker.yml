@@ -21,10 +21,8 @@ env:
     BACKEND_WEBAPP_PROD: bestbank-be-prod
 
 jobs:
-  build:
+  pytests:
     runs-on: ubuntu-latest
-    outputs:
-      image-version: ${{ steps.image-version.outputs.version }}
     env:
       ENV: ghci
 
@@ -56,12 +54,22 @@ jobs:
       run: |
         python -m pytest --cov=iebank_api -v
 
-    - name: Upload artifact for deployment jobs
-      uses: actions/upload-artifact@v4
-      with:
-        name: python-app
-        path: |
-          .
+    # - name: Upload artifact for deployment jobs
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: python-app
+    #     path: |
+    #       .
+
+  # build the docker image
+  build-and-deploy-dev:
+    runs-on: ubuntu-latest
+    outputs:
+      image-version: ${{ steps.image-version.outputs.version }}
+    # environment:
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
     - name: "Log in to azure"
       uses: azure/login@v2
@@ -72,148 +80,128 @@ jobs:
       uses: Azure/cli@v2.1.0
       with:
         inlineScript: |
-            echo "REGISTRY_USERNAME_DEV=$(az keyvault secret show --name adminUsernameSecretName --vault-name ${{ env.KEY_VAULT_NAME_DEV }} --query value -o tsv)" >> $GITHUB_ENV
-            echo "REGISTRY_PASSWORD_DEV=$(az keyvault secret show --name adminPasswordSecretName0 --vault-name ${{ env.KEY_VAULT_NAME_DEV }} --query value -o tsv)" >> $GITHUB_ENV
-            echo "REGISTRY_USERNAME_UAT=$(az keyvault secret show --name adminUsernameSecretName --vault-name ${{ env.KEY_VAULT_NAME_UAT }} --query value -o tsv)" >> $GITHUB_ENV
-            echo "REGISTRY_PASSWORD_UAT=$(az keyvault secret show --name adminPasswordSecretName0 --vault-name ${{ env.KEY_VAULT_NAME_UAT }} --query value -o tsv)" >> $GITHUB_ENV
+            echo "REGISTRY_USERNAME=$(az keyvault secret show --name adminUsernameSecretName --vault-name ${{ env.KEY_VAULT_NAME_DEV }} --query value -o tsv)" >> $GITHUB_ENV
+            echo "REGISTRY_PASSWORD=$(az keyvault secret show --name adminPasswordSecretName0 --vault-name ${{ env.KEY_VAULT_NAME_DEV }} --query value -o tsv)" >> $GITHUB_ENV
 
-    - name: "Login to Docker Registry - DEV"
+    - name: List files in the workspace (Development)
+      run: ls -R
+
+    - name: "Login to Docker Registry"
       uses: azure/docker-login@v2
       with:
         login-server: ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}
-        username: ${{ env.REGISTRY_USERNAME_DEV }}
-        password: ${{ env.REGISTRY_PASSWORD_DEV }}
-
-    - name: "Login to Docker Registry - UAT"
-      uses: azure/docker-login@v2
-      with:
-        login-server: ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}
-        username: ${{ env.REGISTRY_USERNAME_UAT }}
-        password: ${{ env.REGISTRY_PASSWORD_UAT }}
+        username: ${{ env.REGISTRY_USERNAME }}
+        password: ${{ env.REGISTRY_PASSWORD }}
 
     - name: Set image version
       id: image-version
       run: |
-          echo "version=$(date +'%Y.%m.%d.%H.%M')" >> $GITHUB_OUTPUT
+            echo "version=$(date +'%Y.%m.%d.%H.%M')" >> $GITHUB_OUTPUT
+
+    - name: Print images
+      run: |
+            echo "Images"
+            docker images
 
     - name: Docker Build and Push
       run: |
-        # Step 1: Build the image once
-        docker build . -t ${{ env.IMAGE_NAME }}:latest
-        docker build . -t ${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
+        docker build . -t ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:latest
+        docker build . -t ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME}}:${{ steps.image-version.outputs.version }}
+        docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME}}:latest
+        docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME}}:${{ steps.image-version.outputs.version }}
 
-        # Step 2: Tag the image for each registry
-        docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:latest
-        docker tag ${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }} ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
-        docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:latest
-        docker tag ${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }} ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
-        # docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:latest
-        # docker tag ${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }} ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
-
-        # Step 3: Push the image to each registry
-        docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:latest
-        docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
-        docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:latest
-        docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
-        # docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:latest
-        # docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
-
-
-  deploy-dev:
+  build-and-deploy-uat:
+    if:  (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: build
-    environment:
-        name: "Development"
-        url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    outputs:
+      image-version: ${{ steps.image-version.outputs.version }}
+    needs: build-and-deploy-dev
+
     steps:
-        - uses: azure/login@v2
-          with:
-            creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-        - name: "Deploy to Azure Web App - Dev"
-          uses: azure/webapps-deploy@v3
-          id: deploy-to-webapp
-          with:
-            app-name: ${{ env.BACKEND_WEBAPP_DEV }}
-            images: "${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image-version }}"
+    - name: "Log in to azure"
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-  deploy-uat:
-    runs-on: ubuntu-latest
-    needs: [build, deploy-dev]
-    environment:
-        name: "UAT"
-        url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    steps:
-        - uses: azure/login@v2
-          with:
-            creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: "Get docker registry credentials"
+      uses: Azure/cli@v2.1.0
+      with:
+        inlineScript: |
+            echo "REGISTRY_USERNAME=$(az keyvault secret show --name adminUsernameSecretName --vault-name ${{ env.KEY_VAULT_NAME_UAT }} --query value -o tsv)" >> $GITHUB_ENV
+            echo "REGISTRY_PASSWORD=$(az keyvault secret show --name adminPasswordSecretName0 --vault-name ${{ env.KEY_VAULT_NAME_UAT }} --query value -o tsv)" >> $GITHUB_ENV
 
-        - name: "Deploy to Azure Web App - Dev"
-          uses: azure/webapps-deploy@v3
-          id: deploy-to-webapp
-          with:
-            app-name: ${{ env.BACKEND_WEBAPP_UAT }}
-            images: "${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image-version }}"
+    - name: List files in the workspace (Development)
+      run: ls -R
 
-  # build the docker image
-#   build-and-deploy-dev:
+    - name: "Login to Docker Registry"
+      uses: azure/docker-login@v2
+      with:
+        login-server: ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}
+        username: ${{ env.REGISTRY_USERNAME }}
+        password: ${{ env.REGISTRY_PASSWORD }}
+
+    - name: Set image version
+      id: image-version
+      run: |
+            echo "version=$(date +'%Y.%m.%d.%H.%M')" >> $GITHUB_OUTPUT
+
+    - name: Print images
+      run: |
+            echo "Images"
+            docker images
+
+    - name: Docker Build and Push
+      run: |
+        docker build . -t ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:latest
+        docker build . -t ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME}}:${{ steps.image-version.outputs.version }}
+        docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME}}:latest
+        docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME}}:${{ steps.image-version.outputs.version }}
+
+
+# build:
 #     runs-on: ubuntu-latest
 #     outputs:
 #       image-version: ${{ steps.image-version.outputs.version }}
-#     # environment:
+#     env:
+#       ENV: ghci
+
 #     steps:
-#     - name: Checkout code
-#       uses: actions/checkout@v4
+#     - uses: actions/checkout@v4
 
-    # - name: "Log in to azure"
-    #   uses: azure/login@v2
-    #   with:
-    #     creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    # - name: "Get docker registry credentials"
-    #   uses: Azure/cli@v2.1.0
-    #   with:
-    #     inlineScript: |
-    #         echo "REGISTRY_USERNAME=$(az keyvault secret show --name adminUsernameSecretName --vault-name ${{ env.KEY_VAULT_NAME_DEV }} --query value -o tsv)" >> $GITHUB_ENV
-    #         echo "REGISTRY_PASSWORD=$(az keyvault secret show --name adminPasswordSecretName0 --vault-name ${{ env.KEY_VAULT_NAME_DEV }} --query value -o tsv)" >> $GITHUB_ENV
-
-#     - name: List files in the workspace (Development)
-#       run: ls -R
-
-#     - name: "Login to Docker Registry"
-#       uses: azure/docker-login@v2
+#     - name: Set up Python 3.11
+#       uses: actions/setup-python@v5
 #       with:
-#         login-server: ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}
-#         username: ${{ env.REGISTRY_USERNAME }}
-#         password: ${{ env.REGISTRY_PASSWORD }}
+#         python-version: "3.11"
 
-#     - name: Set image version
-#       id: image-version
+#     - name: Upgrade pip
 #       run: |
-#             echo "version=$(date +'%Y.%m.%d.%H.%M')" >> $GITHUB_OUTPUT
+#         python -m pip install --upgrade pip
 
-#     - name: Print images
+#     - name: Install dependencies
 #       run: |
-#             echo "Images"
-#             docker images
+#         pip install -r requirements.txt
 
-#     - name: Docker Build and Push
+#     - name: Lint with flake8
 #       run: |
-#         docker build . -t ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:latest
-#         docker build . -t ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME}}:${{ steps.image-version.outputs.version }}
-#         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME}}:latest
-#         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME}}:${{ steps.image-version.outputs.version }}
+#         pip install flake8 pytest
+#         # stop the build if there are Python syntax errors or undefined names
+#         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+#         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+#         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-#   build-and-deploy-uat:
-#     if:  (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main') || github.ref == 'refs/heads/main'
-#     runs-on: ubuntu-latest
-#     outputs:
-#       image-version: ${{ steps.image-version.outputs.version }}
-#     needs: build-and-deploy-dev
+#     - name: Test with pytest
+#       run: |
+#         python -m pytest --cov=iebank_api -v
 
-#     steps:
-#     - name: Checkout code
-#       uses: actions/checkout@v4
+#     - name: Upload artifact for deployment jobs
+#       uses: actions/upload-artifact@v4
+#       with:
+#         name: python-app
+#         path: |
+#           .
 
 #     - name: "Log in to azure"
 #       uses: azure/login@v2
@@ -224,32 +212,85 @@ jobs:
 #       uses: Azure/cli@v2.1.0
 #       with:
 #         inlineScript: |
+#             echo "REGISTRY_USERNAME=$(az keyvault secret show --name adminUsernameSecretName --vault-name ${{ env.KEY_VAULT_NAME_DEV }} --query value -o tsv)" >> $GITHUB_ENV
+#             echo "REGISTRY_PASSWORD=$(az keyvault secret show --name adminPasswordSecretName0 --vault-name ${{ env.KEY_VAULT_NAME_DEV }} --query value -o tsv)" >> $GITHUB_ENV
 #             echo "REGISTRY_USERNAME=$(az keyvault secret show --name adminUsernameSecretName --vault-name ${{ env.KEY_VAULT_NAME_UAT }} --query value -o tsv)" >> $GITHUB_ENV
 #             echo "REGISTRY_PASSWORD=$(az keyvault secret show --name adminPasswordSecretName0 --vault-name ${{ env.KEY_VAULT_NAME_UAT }} --query value -o tsv)" >> $GITHUB_ENV
 
-#     - name: List files in the workspace (Development)
-#       run: ls -R
+#     - name: "Login to Docker Registry - DEV"
+#       uses: azure/docker-login@v2
+#       with:
+#         login-server: ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}
+#         username: ${{ env.REGISTRY_USERNAME_DEV }}
+#         password: ${{ env.REGISTRY_PASSWORD_DEV }}
 
-#     - name: "Login to Docker Registry"
+#     - name: "Login to Docker Registry - UAT"
 #       uses: azure/docker-login@v2
 #       with:
 #         login-server: ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}
-#         username: ${{ env.REGISTRY_USERNAME }}
-#         password: ${{ env.REGISTRY_PASSWORD }}
+#         username: ${{ env.REGISTRY_USERNAME_UAT }}
+#         password: ${{ env.REGISTRY_PASSWORD_UAT }}
 
 #     - name: Set image version
 #       id: image-version
 #       run: |
-#             echo "version=$(date +'%Y.%m.%d.%H.%M')" >> $GITHUB_OUTPUT
-
-#     - name: Print images
-#       run: |
-#             echo "Images"
-#             docker images
+#           echo "version=$(date +'%Y.%m.%d.%H.%M')" >> $GITHUB_OUTPUT
 
 #     - name: Docker Build and Push
 #       run: |
-#         docker build . -t ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:latest
-#         docker build . -t ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME}}:${{ steps.image-version.outputs.version }}
-#         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME}}:latest
-#         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME}}:${{ steps.image-version.outputs.version }}
+#         # Step 1: Build the image once
+#         docker build . -t ${{ env.IMAGE_NAME }}:latest
+#         docker build . -t ${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
+
+#         # Step 2: Tag the image for each registry
+#         docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:latest
+#         docker tag ${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }} ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
+#         docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:latest
+#         docker tag ${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }} ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
+#         # docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:latest
+#         # docker tag ${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }} ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
+
+#         # Step 3: Push the image to each registry
+#         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:latest
+#         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
+#         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:latest
+#         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
+#         # docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:latest
+#         # docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
+
+
+#   deploy-dev:
+#     runs-on: ubuntu-latest
+#     needs: build
+#     environment:
+#         name: "Development"
+#         url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+#     steps:
+#         - uses: azure/login@v2
+#           with:
+#             creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+#         - name: "Deploy to Azure Web App - Dev"
+#           uses: azure/webapps-deploy@v3
+#           id: deploy-to-webapp
+#           with:
+#             app-name: ${{ env.BACKEND_WEBAPP_DEV }}
+#             images: "${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image-version }}"
+
+#   deploy-uat:
+#     runs-on: ubuntu-latest
+#     needs: [build, deploy-dev]
+#     environment:
+#         name: "UAT"
+#         url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+#     steps:
+        # - uses: azure/login@v2
+        #   with:
+        #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+        # - name: "Deploy to Azure Web App - Dev"
+        #   uses: azure/webapps-deploy@v3
+        #   id: deploy-to-webapp
+        #   with:
+        #     app-name: ${{ env.BACKEND_WEBAPP_UAT }}
+        #     images: "${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image-version }}"
