@@ -1,0 +1,112 @@
+name: Deploy backend to Azure Web App
+
+on:
+  push:
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+
+env:
+    DOCKER_REGISTRY_SERVER_URL_DEV: bestbankcontregistrydev.azurecr.io
+    DOCKER_REGISTRY_SERVER_URL_UAT: bestbankcontregistryuat.azurecr.io
+    DOCKER_REGISTRY_SERVER_URL_PROD: bestbankcontregistryprod.azurecr.io
+    KEY_VAULT_NAME_DEV: BestBank-KV-dev
+    KEY_VAULT_NAME_UAT: BestBank-KV-uat
+    KEY_VAULT_NAME_PROD: BestBank-KV-prod
+
+jobs:
+  # build the docker image
+  build-and-deploy-dev:
+    runs-on: ubuntu-latest
+    outputs:
+      image-version: ${{ steps.image-version.outputs.version }}
+    # environment:
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: "Log in to azure"
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: "Get docker registry credentials"
+      uses: Azure/cli@v2.1.0
+      with:
+        inlineScript: |
+            echo "REGISTRY_USERNAME=$(az keyvault secret show --name adminUsernameSecretName --vault-name ${{ env.KEY_VAULT_NAME_DEV }} --query value -o tsv)" >> $GITHUB_ENV
+            echo "REGISTRY_PASSWORD=$(az keyvault secret show --name adminPasswordSecretName0 --vault-name ${{ env.KEY_VAULT_NAME_DEV }} --query value -o tsv)" >> $GITHUB_ENV
+
+    - name: List files in the workspace (Development)
+      run: ls -R
+
+    - name: "Login to Docker Registry"
+      uses: azure/docker-login@v2
+      with:
+        login-server: ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}
+        username: ${{ env.REGISTRY_USERNAME }}
+        password: ${{ env.REGISTRY_PASSWORD }}
+
+    - name: Set image version
+      id: image-version
+      run: |
+            echo "version=$(date +'%Y.%m.%d.%H.%M')" >> $GITHUB_OUTPUT
+
+    - name: Print images
+      run: |
+            echo "Images"
+            docker images
+
+    - name: Docker Build and Push
+      run: |
+        docker build . -t ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/bestbank-be:latest #${{ steps.image-version.outputs.version }}
+        docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/bestbank-be:latest # ${{ steps.image-version.outputs.version }}
+
+  build-and-deploy-uat:
+    if:  (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      image-version: ${{ steps.image-version.outputs.version }}
+    needs: build-and-deploy-dev
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: "Log in to azure"
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: "Get docker registry credentials"
+      uses: Azure/cli@v2.1.0
+      with:
+        inlineScript: |
+            echo "REGISTRY_USERNAME=$(az keyvault secret show --name adminUsernameSecretName --vault-name ${{ env.KEY_VAULT_NAME_UAT }} --query value -o tsv)" >> $GITHUB_ENV
+            echo "REGISTRY_PASSWORD=$(az keyvault secret show --name adminPasswordSecretName0 --vault-name ${{ env.KEY_VAULT_NAME_UAT }} --query value -o tsv)" >> $GITHUB_ENV
+
+    - name: List files in the workspace (Development)
+      run: ls -R
+
+    - name: "Login to Docker Registry"
+      uses: azure/docker-login@v2
+      with:
+        login-server: ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}
+        username: ${{ env.REGISTRY_USERNAME }}
+        password: ${{ env.REGISTRY_PASSWORD }}
+
+    - name: Set image version
+      id: image-version
+      run: |
+            echo "version=$(date +'%Y.%m.%d.%H.%M')" >> $GITHUB_OUTPUT
+
+    - name: Print images
+      run: |
+            echo "Images"
+            docker images
+
+    - name: Docker Build and Push
+      run: |
+        docker build . -t ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/bestbank-be:${{ steps.image-version.outputs.version }}
+        docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/bestbank-be:${{ steps.image-version.outputs.version }}

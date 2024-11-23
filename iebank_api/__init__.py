@@ -7,6 +7,8 @@ import os
 
 app = Flask(__name__)
 
+os.environ['ENV'] = 'local' # default to local
+
 # Select environment based on the ENV environment variable
 if os.getenv('ENV') == 'local':
     print("Running in local mode")
