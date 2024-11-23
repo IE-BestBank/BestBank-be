@@ -9,13 +9,13 @@ class LocalConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///local.db'
     DEBUG = True
     DEFAULT_ADMIN_USERNAME = 'admin'
-    DEFAULT_ADMIN_PASSWORD = 'password'
+    DEFAULT_ADMIN_PASS = 'password'
 
 class GithubCIConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
     DEBUG = True
     DEFAULT_ADMIN_USERNAME = 'admin'
-    DEFAULT_ADMIN_PASSWORD = 'password'
+    DEFAULT_ADMIN_PASS = 'password'
 
 class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'postgresql://{dbuser}:{dbpass}@{dbhost}/{dbname}'.format(
@@ -26,7 +26,7 @@ class DevelopmentConfig(Config):
     )
     DEBUG = True
     DEFAULT_ADMIN_USERNAME = os.getenv('DEFAULT_ADMIN_USERNAME')
-    DEFAULT_ADMIN_PASSWORD = os.getenv('DEFAULT_ADMIN_PASSWORD')
+    DEFAULT_ADMIN_PASS = os.getenv('DEFAULT_ADMIN_PASS')
 
 class UATConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'postgresql://{dbuser}:{dbpass}@{dbhost}/{dbname}'.format(
@@ -37,4 +37,4 @@ class UATConfig(Config):
     )
     DEBUG = True
     DEFAULT_ADMIN_USERNAME = os.getenv('DEFAULT_ADMIN_USERNAME')
-    DEFAULT_ADMIN_PASSWORD = os.getenv('DEFAULT_ADMIN_PASSWORD')
+    DEFAULT_ADMIN_PASS = os.getenv('DEFAULT_ADMIN_PASS')

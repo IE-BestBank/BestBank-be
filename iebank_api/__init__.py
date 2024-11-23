@@ -7,7 +7,6 @@ import os
 
 app = Flask(__name__)
 
-os.environ['ENV'] = 'local' # default to local
 
 # Select environment based on the ENV environment variable
 if os.getenv('ENV') == 'local':
@@ -35,7 +34,7 @@ with app.app_context():
     # Create the default admin user
     create_default_admin(
         app.config['DEFAULT_ADMIN_USERNAME'],
-        app.config['DEFAULT_ADMIN_PASSWORD']
+        app.config['DEFAULT_ADMIN_PASS']
     )
 CORS(app)
 
