@@ -4,7 +4,10 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # SQLALCHEMY_ECHO = True  # Enable SQLAlchemy debug output
     DEBUG = False
-    APPLICATIONINSIGHTS_CONNECTION_STRING = os.getenv('APPLICATIONINSIGHTS_CONNECTION_STRING')
+    # Fetch the connection string from the environment, use default as fallback
+    APPLICATIONINSIGHTS_CONNECTION_STRING = os.getenv(
+        'APPLICATIONINSIGHTS_CONNECTION_STRING',
+        "InstrumentationKey=e7c40a90-ec1e-4986-9b9b-02b90083d092;IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;LiveEndpoint=https://westeurope.livediagnostics.monitor.azure.com/;ApplicationId=094f0269-3181-4440-bb5b-1f31c65192b8")
 class LocalConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///local.db'
     DEBUG = True
