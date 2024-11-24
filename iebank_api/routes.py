@@ -281,10 +281,6 @@ def get_users():
 
     return {'users': [format_user(user) for user in users if not user.is_admin]}
 
-@app.route("/test-monitoring")
-def test_monitoring():
-    logging.info("Test log for Application Insights monitoring triggered via /test-monitoring")
-    return "Monitoring log sent!"
 
 def format_account(account):
     return {
@@ -324,3 +320,7 @@ def format_transaction(transaction):
         'sender_account': format_account(sender_account),
         'receiver_account': format_account(receiver_account)
     }
+@app.route("/test-monitoring")
+def test_monitoring():
+    logging.info("Test log for Application Insights monitoring triggered via /test-monitoring")
+    return "Monitoring log sent!"
