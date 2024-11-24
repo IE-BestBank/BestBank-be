@@ -1,7 +1,7 @@
 from flask import Flask, request
 from iebank_api import db, app
 from iebank_api.models import Account, User, Transaction
-
+import logging
 @app.route('/')
 def hello_world():
     return 'Hello, World!'
@@ -281,6 +281,10 @@ def get_users():
 
     return {'users': [format_user(user) for user in users if not user.is_admin]}
 
+@app.route("/test-monitoring")
+def test_monitoring():
+    logger.info("Test log for Application Insights monitoring triggered via /test-monitoring")
+    return "Monitoring log sent!"
 
 def format_account(account):
     return {
