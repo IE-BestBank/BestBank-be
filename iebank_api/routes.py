@@ -2,7 +2,10 @@ from flask import Flask, request
 from iebank_api import db, app
 from iebank_api.models import Account, User, Transaction
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("iebank_api")
+from applicationinsights.flask.ext import AppInsights
+
+
 @app.route('/')
 def hello_world():
     return 'Hello, World!'
@@ -321,7 +324,4 @@ def format_transaction(transaction):
         'sender_account': format_account(sender_account),
         'receiver_account': format_account(receiver_account)
     }
-@app.route("/testmonitoring")
-def test_monitoring():
-    logger.info("Test log for Application Insights monitoring triggered via /test-monitoring")
-    return "Monitoring log sent!"
+

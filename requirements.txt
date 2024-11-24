@@ -12,4 +12,10 @@ bcrypt==4.2.0
 gunicorn==23.0.0
 azure-monitor-opentelemetry
 opencensus-ext-azure==1.1.13
-
+# opentelemetry-ext-requests
+opentelemetry-instrumentation-flask
+opentelemetry-instrumentation-psycopg2
+opentelemetry-instrumentation-requests
+opentelemetry-instrumentation-urllib
+opentelemetry-instrumentation-urllib3
+applicationinsights

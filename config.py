@@ -6,8 +6,11 @@ class Config(object):
     DEBUG = False
     # Fetch the connection string from the environment, use default as fallback
     APPLICATIONINSIGHTS_CONNECTION_STRING = os.getenv(
-        'APPLICATIONINSIGHTS_CONNECTION_STRING',
-        "InstrumentationKey=e7c40a90-ec1e-4986-9b9b-02b90083d092;IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;LiveEndpoint=https://westeurope.livediagnostics.monitor.azure.com/;ApplicationId=094f0269-3181-4440-bb5b-1f31c65192b8")
+        "APPLICATIONINSIGHTS_CONNECTION_STRING"
+    )
+    APPINSIGHTS_INSTRUMENTATIONKEY = os.getenv(
+        "APPINSIGHTS_INSTRUMENTATIONKEY"
+    )
 class LocalConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///local.db'
     DEBUG = True
