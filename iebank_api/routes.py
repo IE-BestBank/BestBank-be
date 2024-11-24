@@ -283,7 +283,7 @@ def get_users():
 
 @app.route("/test-monitoring")
 def test_monitoring():
-    logger.info("Test log for Application Insights monitoring triggered via /test-monitoring")
+    logging.info("Test log for Application Insights monitoring triggered via /test-monitoring")
     return "Monitoring log sent!"
 
 def format_account(account):
