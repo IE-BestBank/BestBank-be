@@ -163,6 +163,16 @@ def get_transactions():
     transactions = Transaction.query.all()
     return {'transactions': [format_transaction(transaction) for transaction in transactions]}
 
+@app.route('/transactions/<int:user_id>', methods=['GET'])
+def get_user_transactions(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return {'message': 'User not found!'}, 404
+
+    all_transactions = Transaction.query.all()
+    transactions = [transaction for transaction in all_transactions if transaction.sender_account.user_id == user_id or transaction.receiver_account.user_id == user_id]
+    return {'transactions': [format_transaction(transaction) for transaction in transactions]}
+
 
 # we need a way to add money to an account, if not its impossible to test the transactions
 @app.route("/deposit", methods=["POST"])
@@ -249,15 +259,15 @@ def update_user(id):
     return format_user(user)
 
 
-@app.route('/admin/users/<int:id>', methods=['DELETE'])
-def delete_user(id):
-    admin_id = request.json['admin_id']
-
+@app.route('/admin/users/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    admin_id = request.args.get('admin_id')
     admin = User.query.get(admin_id)
+
     if not admin or not admin.is_admin or admin.id == id:
         return {'message': 'Unauthorized access!'}, 401
 
-    user = User.query.get(id)
+    user = User.query.get(user_id)
     if not user:
         return {'message': 'User not found!'}, 404
 
@@ -271,8 +281,9 @@ def delete_user(id):
 
 @app.route('/admin/users', methods=['GET'])
 def get_users():
-    admin_id = request.json['admin_id']
-
+    # admin_id = request.json['admin_id']
+    admin_id = request.args.get('admin_id')
+    print('admin_id:', admin_id)
     admin = User.query.get(admin_id)
     if not admin or not admin.is_admin:
         return {'message': 'Unauthorized access!'}, 401

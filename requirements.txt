@@ -10,3 +10,4 @@ pytest
 pytest-cov
 bcrypt==4.2.0
 gunicorn==23.0.0
+azure-identity==1.19.0
