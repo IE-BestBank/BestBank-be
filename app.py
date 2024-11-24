@@ -1,22 +1,38 @@
 from flask import Flask
-import logging
-from opencensus.ext.azure.log_exporter import AzureLogHandler
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.resources import Resource
 import os
+
+# Initialize Flask app
 app = Flask(__name__)
 
-# Configure logging for Application Insights
-logger = logging.getLogger(__name__)
-logger.addHandler(AzureLogHandler(
-    connection_string=os.getenv('APPLICATIONINSIGHTS_CONNECTION_STRING')
-))
-logger.setLevel(logging.INFO)
+# Instrument Flask with OpenTelemetry
+FlaskInstrumentor().instrument_app(app)
 
-# Test logging
-logger.info("Test log for Application Insights monitoring.")
+# Set up OpenTelemetry Tracer with Azure Monitor Exporter
+resource = Resource.create({"service.name": "BestBankBackend"})
+tracer_provider = TracerProvider(resource=resource)
+exporter = AzureMonitorTraceExporter(
+    connection_string=os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
+)
+span_processor = BatchSpanProcessor(exporter)
+tracer_provider.add_span_processor(span_processor)
 
+# Define routes
 @app.route("/")
-def home():
-    return "Hello, Application Insights!"
+def hello_world():
+    return "Hello, World!"
+
+@app.route("/test-monitoring")
+def test_monitoring():
+    from opentelemetry.trace import get_tracer
+    tracer = get_tracer(__name__)
+    with tracer.start_as_current_span("test-monitoring-span"):
+        print("Test log for Application Insights monitoring triggered via /test-monitoring")
+        return "Monitoring log sent!"
 
 if __name__ == "__main__":
     app.run(debug=True)
