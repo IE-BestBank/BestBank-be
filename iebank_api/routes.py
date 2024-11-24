@@ -235,8 +235,6 @@ def update_user(id):
     new_username = request.json['new_username']
     new_password = request.json['new_password']
 
-    print('new_username:', new_username)
-    print('new_password:', new_password)
     admin = User.query.get(admin_id)
     if not admin or not admin.is_admin or admin.id == id:
         return {'message': 'Unauthorized access!'}, 401
