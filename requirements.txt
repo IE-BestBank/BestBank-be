@@ -19,4 +19,4 @@ opentelemetry-instrumentation-requests
 opentelemetry-instrumentation-urllib
 opentelemetry-instrumentation-urllib3
 applicationinsights
-
+bcrypt==4.0.1
