@@ -8,7 +8,7 @@ psycopg2-binary
 python-dotenv==0.21.0
 pytest
 pytest-cov
-bcrypt==4.2.0
+bcrypt==4.0.1
 gunicorn==23.0.0
 azure-monitor-opentelemetry
 opencensus-ext-azure==1.1.13
@@ -19,3 +19,4 @@ opentelemetry-instrumentation-requests
 opentelemetry-instrumentation-urllib
 opentelemetry-instrumentation-urllib3
 applicationinsights
+
