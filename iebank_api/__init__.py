@@ -14,8 +14,6 @@ import os
 # Initialize Flask app
 app = Flask(__name__)
 
-# Set default environment to 'local'
-os.environ['ENV'] = os.getenv('ENV', 'local')
 
 # Select environment based on the ENV environment variable
 if os.getenv('ENV') == 'local':
@@ -69,7 +67,7 @@ with app.app_context():
     # Create the default admin user
     create_default_admin(
         app.config['DEFAULT_ADMIN_USERNAME'],
-        app.config['DEFAULT_ADMIN_PASSWORD']
+        app.config['DEFAULT_ADMIN_PASS']
     )
 
 # Define a testing route

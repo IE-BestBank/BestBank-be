@@ -2,20 +2,21 @@ Flask==3.0.0
 Flask-Cors==4.0.2
 Flask-SQLAlchemy==3.1.1
 Flask-Migrate==4.0.7
-SQLAlchemy==2.0.36
-# psycopg2==2.9.7 # this was the library that caused some errors in production before
+sqlalchemy==2.0.6
+psycopg2==2.9.7  # this was the library that caused some errors in production before
 psycopg2-binary
 python-dotenv==0.21.0
 pytest
 pytest-cov
-bcrypt==4.2.0
+bcrypt==4.0.2
 gunicorn==23.0.0
 azure-monitor-opentelemetry
 opencensus-ext-azure==1.1.13
-# opentelemetry-ext-requests
+opentelemetry-ext-requests
 opentelemetry-instrumentation-flask
 opentelemetry-instrumentation-psycopg2
 opentelemetry-instrumentation-requests
 opentelemetry-instrumentation-urllib
 opentelemetry-instrumentation-urllib3
 applicationinsights
+azure-identity==1.19.0
