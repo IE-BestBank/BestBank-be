@@ -14,10 +14,7 @@ import os
 # Initialize Flask app
 app = Flask(__name__)
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 044e4aea5a339161df937080d16185afc7b2599e
 # Select environment based on the ENV environment variable
 if os.getenv('ENV') == 'local':
     print("Running in local mode")
