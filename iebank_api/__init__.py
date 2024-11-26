@@ -42,7 +42,7 @@ FlaskInstrumentor().instrument_app(app)  # Instrument Flask with OpenTelemetry
 resource = Resource.create({"service.name": "iebank_api"})
 tracer_provider = TracerProvider(resource=resource)
 exporter = AzureMonitorTraceExporter(
-    connection_string=os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
+    connection_string=os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING", "YOUR_CONNECTION_STRING")
 )
 span_processor = BatchSpanProcessor(exporter)
 tracer_provider.add_span_processor(span_processor)
