@@ -5,13 +5,16 @@ import logging
 from app import app, appinsights  # Import `app` and `appinsights` from `app.py`
 from applicationinsights.flask.ext import AppInsights
 from applicationinsights import TelemetryClient
-connection_string = app.config.get('APPINSIGHTS_INSTRUMENTATIONKEY')
-telemetry_client = TelemetryClient(connection_string)
 
 # Set up logger
 logger = logging.getLogger("iebank_api")
+
+# Initialize TelemetryClient with connection string from app config
 connection_string = app.config.get('APPINSIGHTS_INSTRUMENTATIONKEY')
-telemetry_client = TelemetryClient(connection_string)
+if connection_string:
+    telemetry_client = TelemetryClient(connection_string)
+else:
+    raise ValueError("Application Insights connection string is not configured.")
 
 @app.route('/')
 def hello_world():
@@ -21,25 +24,31 @@ def hello_world():
 def skull():
     text = 'Hi! This is the BACKEND SKULL! 💀 '
 
-    text = text +'<br/>Database URL:' + db.engine.url.database
+    # Append database details for debugging
+    text += f"<br/>Database URL: {db.engine.url.database}"
     if db.engine.url.host:
-        text = text +'<br/>Database host:' + db.engine.url.host
+        text += f"<br/>Database host: {db.engine.url.host}"
     if db.engine.url.port:
-        text = text +'<br/>Database port:' + db.engine.url.port
+        text += f"<br/>Database port: {db.engine.url.port}"
     if db.engine.url.username:
-        text = text +'<br/>Database user:' + db.engine.url.username
+        text += f"<br/>Database user: {db.engine.url.username}"
     if db.engine.url.password:
-        text = text +'<br/>Database password:' + db.engine.url.password
+        text += f"<br/>Database password: {db.engine.url.password}"
     return text
-
 
 @app.route('/accounts', methods=['POST'])
 def create_account():
-    name = request.json['name']
-    currency = request.json['currency']
-    country = request.json['country']
-    user_id = request.json['user_id']
+    # Extract account details from request
+    name = request.json.get('name')
+    currency = request.json.get('currency')
+    country = request.json.get('country')
+    user_id = request.json.get('user_id')
 
+    # Validate required fields
+    if not all([name, currency, country, user_id]):
+        return {'error': 'Missing required fields'}, 400
+
+    # Create and save the account
     account = Account(name, currency, country, user_id)
     db.session.add(account)
     db.session.commit()
@@ -52,13 +61,13 @@ def create_account():
         "name": account.name,
         "currency": account.currency,
         "country": account.country,
-        "user_id": account.user_id
+        "user_id": user_id
     })
 
-    telemetry_client.flush()  # Ensure data is sent to Azure
+    # Ensure telemetry data is sent to Azure
+    telemetry_client.flush()
 
     return format_account(account)
-
 @app.route('/accounts', methods=['GET'])
 def get_accounts():
     accounts = Account.query.all()
