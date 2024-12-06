@@ -25,6 +25,5 @@ def test_telemetry():
         return {"error": "TelemetryClient is not initialized"}, 500
 
 if __name__ == '__main__':
-    # Determine debug mode from environment variables
     debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() in ['true', '1', 't']
     app.run(debug=debug_mode)
