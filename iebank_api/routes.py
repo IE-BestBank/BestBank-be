@@ -2,11 +2,9 @@ from flask import Flask, request
 from iebank_api import db, app
 from iebank_api.models import Account, User, Transaction
 import logging
-
+from app import app, appinsights  # Import `app` and `appinsights` from `app.py`
 from applicationinsights.flask.ext import AppInsights
 
-app.config['APPINSIGHTS_INSTRUMENTATIONKEY'] = os.getenv('APPLICATIONINSIGHTS_CONNECTION_STRING', '')
-appinsights = AppInsights(app)
 
 # Set up logger
 logger = logging.getLogger("iebank_api")
