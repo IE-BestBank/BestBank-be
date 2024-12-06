@@ -1,0 +1,11 @@
+{
+    "id": "uat-environment",
+    "name": "UAT Environment",
+    "values": [
+        {
+            "key": "base_url",
+            "value": "https://bestbank-be-uat.azurewebsites.net",
+            "enabled": true
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "id": "bestbank-environment",
+    "name": "BestBank Environment",
+    "values": [
+        {
+            "key": "base_url",
+            "value": "https://bestbank-be-dev.azurewebsites.net",
+            "enabled": true
+        },
+        {
+            "key": "admin_id",
+            "value": "1",
+            "enabled": true
+        }
+    ]
+}
