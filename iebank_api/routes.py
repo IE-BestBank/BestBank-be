@@ -4,10 +4,14 @@ from iebank_api.models import Account, User, Transaction
 import logging
 from app import app, appinsights  # Import `app` and `appinsights` from `app.py`
 from applicationinsights.flask.ext import AppInsights
-
+from applicationinsights import TelemetryClient
+connection_string = app.config.get('APPINSIGHTS_INSTRUMENTATIONKEY')
+telemetry_client = TelemetryClient(connection_string)
 
 # Set up logger
 logger = logging.getLogger("iebank_api")
+connection_string = app.config.get('APPINSIGHTS_INSTRUMENTATIONKEY')
+telemetry_client = TelemetryClient(connection_string)
 
 @app.route('/')
 def hello_world():
@@ -39,13 +43,20 @@ def create_account():
     account = Account(name, currency, country, user_id)
     db.session.add(account)
     db.session.commit()
+
+    # Log locally
     app.logger.info(f"Account created: {account.name}, Currency: {account.currency}, User ID: {user_id}")
-    appinsights.client.track_event("AccountCreated", {
+
+    # Log to Application Insights
+    telemetry_client.track_event("AccountCreated", {
         "name": account.name,
         "currency": account.currency,
         "country": account.country,
         "user_id": account.user_id
     })
+
+    telemetry_client.flush()  # Ensure data is sent to Azure
+
     return format_account(account)
 
 @app.route('/accounts', methods=['GET'])
