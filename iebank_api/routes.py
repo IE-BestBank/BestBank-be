@@ -37,7 +37,7 @@ def create_account():
     db.session.add(account)
     db.session.commit()
     app.logger.info(f"Account created: {account.name}, Currency: {account.currency}, User ID: {user_id}")
-    appinsights.client.track_event("AccountCreated", {
+    AppInsights.client.track_event("AccountCreated", {
         "name": account.name,
         "currency": account.currency,
         "country": account.country,
