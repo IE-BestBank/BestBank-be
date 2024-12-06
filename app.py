@@ -23,3 +23,9 @@ if __name__ == '__main__':
     debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() in ['true', '1', 't']
     app.logger.info(f"Starting app in {'debug' if debug_mode else 'production'} mode.")
     app.run(debug=debug_mode)
+
+@app.route('/test-telemetry', methods=['GET'])
+def test_telemetry():
+    telemetry_client.track_event("TestEvent", {"property": "TestValue"})
+    telemetry_client.flush()  # Ensure the event is sent immediately
+    return {"message": "Test event sent to Application Insights"}
