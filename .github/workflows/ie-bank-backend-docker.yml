@@ -15,7 +15,7 @@ env:
     KEY_VAULT_NAME_DEV: BestBank-KV-dev
     KEY_VAULT_NAME_UAT: BestBank-KV-uat
     KEY_VAULT_NAME_PROD: BestBank-KV-prod
-    APPLICATIONINSIGHTS_CONNECTION_STRING: ${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}
+  
     BACKEND_WEBAPP_DEV: bestbank-be-dev
     BACKEND_WEBAPP_UAT: bestbank-be-uat
     BACKEND_WEBAPP_PROD: bestbank-be-prod
