@@ -2,9 +2,14 @@ from flask import Flask, request
 from iebank_api import db, app
 from iebank_api.models import Account, User, Transaction
 import logging
-logger = logging.getLogger("iebank_api")
+
 from applicationinsights.flask.ext import AppInsights
 
+app.config['APPINSIGHTS_INSTRUMENTATIONKEY'] = os.getenv('APPLICATIONINSIGHTS_CONNECTION_STRING', '')
+appinsights = AppInsights(app)
+
+# Set up logger
+logger = logging.getLogger("iebank_api")
 
 @app.route('/')
 def hello_world():
@@ -37,7 +42,7 @@ def create_account():
     db.session.add(account)
     db.session.commit()
     app.logger.info(f"Account created: {account.name}, Currency: {account.currency}, User ID: {user_id}")
-    AppInsights.client.track_event("AccountCreated", {
+    appinsights.client.track_event("AccountCreated", {
         "name": account.name,
         "currency": account.currency,
         "country": account.country,
