@@ -54,12 +54,6 @@ jobs:
       run: |
         python -m pytest --cov=iebank_api -v
 
-    # - name: Upload artifact for deployment jobs
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: python-app
-    #     path: |
-    #       .
 
   # build the docker image
   build-and-deploy-dev:
@@ -162,7 +156,7 @@ jobs:
         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME}}:${{ steps.image-version.outputs.version }}
 
   build-and-deploy-prod:
-    if: github.ref == 'refs/heads/main'  
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [pytests, build-and-deploy-dev, build-and-deploy-uat]
     outputs:
