@@ -1,48 +1,46 @@
-from flask import Flask, request
+from flask import request, jsonify
 from iebank_api import db, app
 from iebank_api.models import Account, User, Transaction
+from app import app, appinsights  # Import app and appinsights
 import logging
-from app import app, appinsights  # Import `app` and `appinsights` from `app.py`
-from applicationinsights.flask.ext import AppInsights
-from applicationinsights import TelemetryClient
 
 # Set up logger
 logger = logging.getLogger("iebank_api")
 
-# Initialize TelemetryClient with connection string from app config
-connection_string = app.config.get('APPINSIGHTS_INSTRUMENTATIONKEY')
-if connection_string:
-    telemetry_client = TelemetryClient(connection_string)
-else:
-    raise ValueError("Application Insights connection string is not configured.")
 
 @app.route('/')
 def hello_world():
     return 'Hello, World!'
 
+
 @app.route('/skull', methods=['GET'])
 def skull():
-    text = 'Hi! This is the BACKEND SKULL! 💀 '
+    # Provide database details for debugging
+    db_details = {
+        "Database URL": db.engine.url.database,
+        "Database host": db.engine.url.host,
+        "Database port": db.engine.url.port,
+        "Database user": db.engine.url.username,
+        "Database password": db.engine.url.password,
+    }
+    return "<br/>".join([f"{key}: {value}" for key, value in db_details.items() if value])
 
-    # Append database details for debugging
-    text += f"<br/>Database URL: {db.engine.url.database}"
-    if db.engine.url.host:
-        text += f"<br/>Database host: {db.engine.url.host}"
-    if db.engine.url.port:
-        text += f"<br/>Database port: {db.engine.url.port}"
-    if db.engine.url.username:
-        text += f"<br/>Database user: {db.engine.url.username}"
-    if db.engine.url.password:
-        text += f"<br/>Database password: {db.engine.url.password}"
-    return text
 
 @app.route('/accounts', methods=['POST'])
 def create_account():
+    # Validate required fields
+    required_fields = ['name', 'currency', 'country', 'user_id']
+    missing_fields = [field for field in required_fields if field not in request.json]
+    if missing_fields:
+        return jsonify({"error": f"Missing required fields: {', '.join(missing_fields)}"}), 400
+
+    # Extract account details
     name = request.json['name']
     currency = request.json['currency']
     country = request.json['country']
     user_id = request.json['user_id']
 
+    # Create and save the account
     account = Account(name, currency, country, user_id)
     db.session.add(account)
     db.session.commit()
@@ -51,16 +49,17 @@ def create_account():
     app.logger.info(f"Account created: {account.name}, Currency: {account.currency}, User ID: {user_id}")
 
     # Log to Application Insights
-    if telemetry_client:
-        telemetry_client.track_event("AccountCreated", {
+    if appinsights:
+        appinsights.client.track_event("AccountCreated", {
             "name": account.name,
             "currency": account.currency,
             "country": account.country,
             "user_id": user_id
         })
-        telemetry_client.flush()  # Ensure telemetry is sent to Azure
+        appinsights.client.flush()  # Ensure telemetry is sent to Azure
 
     return format_account(account)
+
     
 @app.route('/accounts', methods=['GET'])
 def get_accounts():
