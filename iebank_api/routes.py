@@ -7,23 +7,25 @@ import logging
 # Set up logger
 logger = logging.getLogger("iebank_api")
 
-
 @app.route('/')
 def hello_world():
     return 'Hello, World!'
 
-
 @app.route('/skull', methods=['GET'])
 def skull():
-    # Provide database details for debugging
-    db_details = {
-        "Database URL": db.engine.url.database,
-        "Database host": db.engine.url.host,
-        "Database port": db.engine.url.port,
-        "Database user": db.engine.url.username,
-        "Database password": db.engine.url.password,
-    }
-    return "<br/>".join([f"{key}: {value}" for key, value in db_details.items() if value])
+    text = 'Hi! This is the BACKEND SKULL! 💀 '
+
+    # Append database details for debugging
+    text += f"<br/>Database URL: {db.engine.url.database}"
+    if db.engine.url.host:
+        text += f"<br/>Database host: {db.engine.url.host}"
+    if db.engine.url.port:
+        text += f"<br/>Database port: {db.engine.url.port}"
+    if db.engine.url.username:
+        text += f"<br/>Database user: {db.engine.url.username}"
+    if db.engine.url.password:
+        text += f"<br/>Database password: {db.engine.url.password}"
+    return text
 
 
 @app.route('/accounts', methods=['POST'])
@@ -59,7 +61,6 @@ def create_account():
         appinsights.client.flush()  # Ensure telemetry is sent to Azure
 
     return format_account(account)
-
     
 @app.route('/accounts', methods=['GET'])
 def get_accounts():
@@ -358,4 +359,3 @@ def format_transaction(transaction):
         'sender_account': format_account(sender_account),
         'receiver_account': format_account(receiver_account)
     }
-
