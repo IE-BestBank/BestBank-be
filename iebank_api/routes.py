@@ -1,7 +1,7 @@
 from flask import request, jsonify
 from iebank_api import db, app
-from iebank_api.models import Account, User, Transaction
-from app import app, appinsights  # Import app and appinsights
+from iebank_api.models import Account
+from app import appinsights, telemetry_client  # Import both from app.py
 import logging
 
 # Set up logger
@@ -50,15 +50,15 @@ def create_account():
     # Log locally
     app.logger.info(f"Account created: {account.name}, Currency: {account.currency}, User ID: {user_id}")
 
-    # Log to Application Insights
-    if appinsights:
-        appinsights.client.track_event("AccountCreated", {
+    # Log to Application Insights using TelemetryClient
+    if telemetry_client:
+        telemetry_client.track_event("AccountCreated", {
             "name": account.name,
             "currency": account.currency,
             "country": account.country,
             "user_id": user_id
         })
-        appinsights.client.flush()  # Ensure telemetry is sent to Azure
+        telemetry_client.flush()  # Ensure telemetry is sent to Azure
 
     return format_account(account)
     
