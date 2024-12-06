@@ -1,31 +1,30 @@
 from iebank_api import app
-from applicationinsights.flask.ext import AppInsights
+from applicationinsights import TelemetryClient
 import os
 import logging
 
-# Initialize Application Insights
-try:
-    app.config['APPINSIGHTS_INSTRUMENTATIONKEY'] = os.getenv('APPLICATIONINSIGHTS_CONNECTION_STRING', '')
-    if not app.config['APPINSIGHTS_INSTRUMENTATIONKEY']:
-        raise ValueError("Application Insights connection string is not set.")
-    
-    appinsights = AppInsights(app)
-    app.logger.info("Application Insights successfully initialized.")
-except Exception as e:
-    app.logger.error(f"Failed to initialize Application Insights: {e}")
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
-if __name__ == '__main__':
-    # Set up logging for development and debugging
-    log_level = logging.DEBUG if os.getenv('FLASK_DEBUG', 'False').lower() in ['true', '1', 't'] else logging.INFO
-    logging.basicConfig(level=log_level)
-
-    # Determine debug mode from environment variables
-    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() in ['true', '1', 't']
-    app.logger.info(f"Starting app in {'debug' if debug_mode else 'production'} mode.")
-    app.run(debug=debug_mode)
+# Initialize Application Insights TelemetryClient
+connection_string = os.getenv('APPLICATIONINSIGHTS_CONNECTION_STRING', '')
+if not connection_string:
+    logging.error("Application Insights connection string is not set.")
+    telemetry_client = None
+else:
+    telemetry_client = TelemetryClient(connection_string)
+    logging.info("Application Insights TelemetryClient initialized.")
 
 @app.route('/test-telemetry', methods=['GET'])
 def test_telemetry():
-    telemetry_client.track_event("TestEvent", {"property": "TestValue"})
-    telemetry_client.flush()  # Ensure the event is sent immediately
-    return {"message": "Test event sent to Application Insights"}
+    if telemetry_client:
+        telemetry_client.track_event("TestEvent", {"property": "TestValue"})
+        telemetry_client.flush()  # Ensure the event is sent immediately
+        return {"message": "Test event sent to Application Insights"}
+    else:
+        return {"error": "TelemetryClient is not initialized"}, 500
+
+if __name__ == '__main__':
+    # Determine debug mode from environment variables
+    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() in ['true', '1', 't']
+    app.run(debug=debug_mode)
