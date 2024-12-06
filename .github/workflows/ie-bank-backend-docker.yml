@@ -19,7 +19,7 @@ env:
     BACKEND_WEBAPP_DEV: bestbank-be-dev
     BACKEND_WEBAPP_UAT: bestbank-be-uat
     BACKEND_WEBAPP_PROD: bestbank-be-prod
-    APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=00000000-0000-0000-0000-000000000000"
+    
 
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ENV: ghci
-
+      APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=00000000-0000-0000-0000-000000000000"
     steps:
     - uses: actions/checkout@v4
 
