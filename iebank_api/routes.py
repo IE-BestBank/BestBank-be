@@ -38,17 +38,11 @@ def skull():
 
 @app.route('/accounts', methods=['POST'])
 def create_account():
-    # Extract account details from request
-    name = request.json.get('name')
-    currency = request.json.get('currency')
-    country = request.json.get('country')
-    user_id = request.json.get('user_id')
+    name = request.json['name']
+    currency = request.json['currency']
+    country = request.json['country']
+    user_id = request.json['user_id']
 
-    # Validate required fields
-    if not all([name, currency, country, user_id]):
-        return {'error': 'Missing required fields'}, 400
-
-    # Create and save the account
     account = Account(name, currency, country, user_id)
     db.session.add(account)
     db.session.commit()
@@ -57,17 +51,17 @@ def create_account():
     app.logger.info(f"Account created: {account.name}, Currency: {account.currency}, User ID: {user_id}")
 
     # Log to Application Insights
-    telemetry_client.track_event("AccountCreated", {
-        "name": account.name,
-        "currency": account.currency,
-        "country": account.country,
-        "user_id": user_id
-    })
-
-    # Ensure telemetry data is sent to Azure
-    telemetry_client.flush()
+    if telemetry_client:
+        telemetry_client.track_event("AccountCreated", {
+            "name": account.name,
+            "currency": account.currency,
+            "country": account.country,
+            "user_id": user_id
+        })
+        telemetry_client.flush()  # Ensure telemetry is sent to Azure
 
     return format_account(account)
+    
 @app.route('/accounts', methods=['GET'])
 def get_accounts():
     accounts = Account.query.all()
