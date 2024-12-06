@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ENV: ghci
-
+      APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=mock-instrumentation-key"
     steps:
     - uses: actions/checkout@v4
 
