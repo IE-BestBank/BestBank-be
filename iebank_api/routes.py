@@ -2,6 +2,7 @@ from flask import request, jsonify
 from iebank_api import db, app
 from iebank_api.models import Account
 from app import appinsights, telemetry_client  # Import both from app.py
+from iebank_api.models import Account, User, Transaction
 import logging
 
 # Set up logger
