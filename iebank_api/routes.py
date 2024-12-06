@@ -1,6 +1,10 @@
 from flask import Flask, request
 from iebank_api import db, app
 from iebank_api.models import Account, User, Transaction
+import logging
+logger = logging.getLogger("iebank_api")
+from applicationinsights.flask.ext import AppInsights
+
 
 @app.route('/')
 def hello_world():
@@ -331,3 +335,4 @@ def format_transaction(transaction):
         'sender_account': format_account(sender_account),
         'receiver_account': format_account(receiver_account)
     }
+

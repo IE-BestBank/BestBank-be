@@ -15,7 +15,7 @@ env:
     KEY_VAULT_NAME_DEV: BestBank-KV-dev
     KEY_VAULT_NAME_UAT: BestBank-KV-uat
     KEY_VAULT_NAME_PROD: BestBank-KV-prod
-
+    APPLICATIONINSIGHTS_CONNECTION_STRING: ${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}
     BACKEND_WEBAPP_DEV: bestbank-be-dev
     BACKEND_WEBAPP_UAT: bestbank-be-uat
     BACKEND_WEBAPP_PROD: bestbank-be-prod
@@ -25,7 +25,39 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ENV: ghci
+      APPLICATIONINSIGHTS_CONNECTION_STRING: "jobs:
+  pytests:
+    runs-on: ubuntu-latest
+    env:
+      ENV: ghci
+      APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=00000000-0000-0000-0000-000000000000"
 
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Upgrade pip
+      run: |
+        python -m pip install --upgrade pip
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Lint with flake8
+      run: |
+        pip install flake8 pytest
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Test with pytest
+      run: |
+        python -m pytest --cov=iebank_api -v
+"
     steps:
     - uses: actions/checkout@v4
 

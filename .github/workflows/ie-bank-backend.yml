@@ -13,6 +13,8 @@ permissions:
 env:
     BACKEND_WEBAPP_DEV: bestbank-be-dev
     BACKEND_WEBAPP_UAT: bestbank-be-uat
+    APPLICATIONINSIGHTS_CONNECTION_STRING: ${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}
+
 
 jobs:
   build:
