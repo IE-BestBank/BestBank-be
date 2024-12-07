@@ -62,40 +62,42 @@
             "name": "Accounts",
             "item": [
                 {
-                    "name": "Create Account",
-                    "request": {
-                        "method": "POST",
-                        "url": "{{base_url}}/accounts",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\"name\": \"Savings\", \"currency\": \"USD\", \"country\": \"US\", \"user_id\": {{user_id}}}"
-                        },
-                        "description": "Create a new account for a registered user."
-                    },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Status code is 201', function () {",
-                                    "    pm.response.to.have.status(201);",
-                                    "});",
-                                    "pm.test('Account creation response contains ID', function () {",
-                                    "    let jsonResponse = pm.response.json();",
-                                    "    pm.expect(jsonResponse).to.have.property('id');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ]
-                },
+                    {
+  "name": "Create Account",
+  "request": {
+    "method": "POST",
+    "url": "{{base_url}}/accounts",
+    "header": [
+      {
+        "key": "Content-Type",
+        "value": "application/json"
+      }
+    ],
+    "body": {
+      "mode": "raw",
+      "raw": "{\"name\": \"Savings\", \"currency\": \"USD\", \"country\": \"US\", \"user_id\": {{user_id}}}"
+    },
+    "description": "Create a new account for a registered user."
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          "pm.test('Status code is 201', function () {",
+          "    pm.response.to.have.status(201);",
+          "});",
+          "pm.test('Account creation response contains ID', function () {",
+          "    let jsonResponse = pm.response.json();",
+          "    pm.expect(jsonResponse).to.have.property('id');",
+          "});"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ]
+}
+,
                 {
                     "name": "Get All Accounts",
                     "request": {
