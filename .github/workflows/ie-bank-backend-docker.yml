@@ -229,7 +229,7 @@ jobs:
 
   deploy-prod:
     runs-on: ubuntu-latest
-    needs: [build-prod]
+    needs: build-prod
 
     steps:
       - uses: azure/login@v2
