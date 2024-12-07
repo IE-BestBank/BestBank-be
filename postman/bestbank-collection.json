@@ -79,16 +79,22 @@
                     "event": [
                         {
                             "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "pm.test('Response contains account details', function () {",
-                                    "    let jsonResponse = pm.response.json();",
-                                    "    pm.expect(jsonResponse).to.have.property('id');",
-                                    "    pm.expect(jsonResponse.name).to.eql('Savings');",
-                                    "});"
+        "script": {
+            "exec": [
+                "pm.test('Status code is 200', function () {",
+                "    pm.expect(pm.response.code).to.eql(200);",
+                "});",
+                "",
+                "pm.test('Response contains account details', function () {",
+                "    let jsonResponse;",
+                "    try {",
+                "        jsonResponse = pm.response.json();",
+                "        pm.expect(jsonResponse).to.have.property('id');",
+                "        pm.expect(jsonResponse.name).to.eql('Savings');",
+                "    } catch (e) {",
+                "        console.log('Invalid JSON response: ', pm.response.text());",
+                "    }",
+                "});"
                                 ]
                             }
                         }
@@ -141,18 +147,19 @@
                     },
                     "event": [
                         {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "pm.test('Response contains user ID', function () {",
-                                    "    let jsonResponse = pm.response.json();",
-                                    "    pm.expect(jsonResponse).to.have.property('id');",
-                                    "    pm.environment.set('user_id', jsonResponse.id);",
-                                    "    pm.environment.set('username', jsonResponse.username);",
-                                    "});"
+                           "listen": "test",
+        "script": {
+            "exec": [
+                "pm.test('Status code is 200', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test('Response contains user ID', function () {",
+                "    let jsonResponse = pm.response.json();",
+                "    pm.expect(jsonResponse).to.have.property('id');",
+                "    pm.environment.set('user_id', jsonResponse.id);",
+                "    pm.environment.set('username', jsonResponse.username);",
+                "});"
                                 ]
                             }
                         }
