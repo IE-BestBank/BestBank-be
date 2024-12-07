@@ -244,9 +244,8 @@ jobs:
           images: ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:${{ needs.build-uat.outputs.image-version }}
 
   deploy-prod:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    needs: [build-uat, build-prod]
+    needs: [build-prod]
 
     steps:
       - uses: azure/login@v2
@@ -257,4 +256,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.BACKEND_WEBAPP_PROD }}
-          images: ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:${{ needs.build-uat.outputs.image-version }}
+          images: ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:${{ needs.build-prod.outputs.image-version }}
