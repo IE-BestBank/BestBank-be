@@ -123,41 +123,44 @@
             "name": "Users",
             "item": [
                 {
-                    "name": "Register User",
-                    "request": {
-                        "method": "POST",
-                        "url": "{{base_url}}/users/register",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\"username\": \"user_{{$timestamp}}\", \"password\": \"password123\", \"password2\": \"password123\"}"
-                        },
-                        "description": "Register a new user."
-                    },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Status code is 201', function () {",
-                                    "    pm.response.to.have.status(201);",
-                                    "});",
-                                    "pm.test('Response contains user ID', function () {",
-                                    "    let jsonResponse = pm.response.json();",
-                                    "    pm.expect(jsonResponse).to.have.property('id');",
-                                    "    pm.environment.set('user_id', jsonResponse.id);",
-                                    "    pm.environment.set('username', jsonResponse.username);",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ]
-                },
+                    {
+    "name": "Register User",
+    "request": {
+        "method": "POST",
+        "url": "{{base_url}}/users/register",
+        "header": [
+            {
+                "key": "Content-Type",
+                "value": "application/json"
+            }
+        ],
+        "body": {
+            "mode": "raw",
+            "raw": "{\"username\": \"user_{{$timestamp}}\", \"password\": \"password123\", \"password2\": \"password123\"}"
+        },
+        "description": "Register a new user."
+    },
+    "event": [
+        {
+            "listen": "test",
+            "script": {
+                "exec": [
+                    "pm.test('Status code is 201', function () {",
+                    "    pm.response.to.have.status(201);",
+                    "});",
+                    "pm.test('Response contains user ID', function () {",
+                    "    let jsonResponse = pm.response.json();",
+                    "    pm.expect(jsonResponse).to.have.property('id');",
+                    "    pm.environment.set('user_id', jsonResponse.id);",
+                    "    pm.environment.set('username', jsonResponse.username);",
+                    "});"
+                ],
+                "type": "text/javascript"
+            }
+        }
+    ]
+}
+,
                 {
                     "name": "Login User",
                     "request": {
