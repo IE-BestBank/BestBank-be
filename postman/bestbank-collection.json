@@ -89,7 +89,6 @@
                                     "pm.test('Account creation response contains ID', function () {",
                                     "    let jsonResponse = pm.response.json();",
                                     "    pm.expect(jsonResponse).to.have.property('id');",
-                                    "    pm.environment.set('account_id', jsonResponse.id);",
                                     "});"
                                 ],
                                 "type": "text/javascript"
@@ -139,7 +138,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\"username\": \"testuser\", \"password\": \"password123\", \"password2\": \"password123\"}"
+                            "raw": "{\"username\": \"user_{{$timestamp}}\", \"password\": \"password123\", \"password2\": \"password123\"}"
                         },
                         "description": "Register a new user."
                     },
@@ -175,7 +174,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\"username\": \"testuser\", \"password\": \"password123\"}"
+                            "raw": "{\"username\": \"user_{{$timestamp}}\", \"password\": \"password123\"}"
                         },
                         "description": "Login with a registered user."
                     },
