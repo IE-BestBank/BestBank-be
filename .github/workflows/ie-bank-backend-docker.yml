@@ -180,6 +180,24 @@ jobs:
             echo "REGISTRY_USERNAME=$(az keyvault secret show --name adminUsernameSecretName --vault-name ${{ env.KEY_VAULT_NAME_PROD }} --query value -o tsv)" >> $GITHUB_ENV
             echo "REGISTRY_PASSWORD=$(az keyvault secret show --name adminPasswordSecretName0 --vault-name ${{ env.KEY_VAULT_NAME_PROD }} --query value -o tsv)" >> $GITHUB_ENV
 
+    # Step to validate critical environment variables
+    - name: Validate environment variables
+      run: |
+        echo "Validating environment variables..."
+        if [ -z "${{ env.REGISTRY_USERNAME }}" ]; then 
+          echo "ERROR: REGISTRY_USERNAME is not set or is empty!" 
+          exit 1
+        fi
+        if [ -z "${{ env.REGISTRY_PASSWORD }}" ]; then 
+          echo "ERROR: REGISTRY_PASSWORD is not set or is empty!" 
+          exit 1
+        fi
+        if [ -z "${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}" ]; then 
+          echo "ERROR: DOCKER_REGISTRY_SERVER_URL_PROD is not set or is empty!" 
+          exit 1
+        fi
+        echo "All required environment variables are set."
+
     - name: List files in the workspace (Production)
       run: ls -R
 
@@ -193,7 +211,7 @@ jobs:
     - name: Set image version
       id: image-version
       run: |
-            echo "version=$(date +'%Y.%m.%d.%H.%M')" >> $GITHUB_OUTPUT
+          echo "version=$(date +'%Y.%m.%d.%H.%M')" >> $GITHUB_OUTPUT
 
     - name: Docker Build and Push
       run: |
@@ -208,7 +226,6 @@ jobs:
         app-name: ${{ env.BACKEND_WEBAPP_PROD }}
         images: "${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}"
 
-# build:
 #     runs-on: ubuntu-latest
 #     outputs:
 #       image-version: ${{ steps.image-version.outputs.version }}
