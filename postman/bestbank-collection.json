@@ -72,7 +72,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\"name\": \"Savings\", \"currency\": \"USD\", \"country\": \"US\", \"user_id\": {{user_id}}}"
+                            "raw": "{\"name\": \"Savings\", \"currency\": \"USD\", \"country\": \"US\", \"user_id\": 1}"
                         },
                         "description": "Create a new account for a registered user."
                     },
