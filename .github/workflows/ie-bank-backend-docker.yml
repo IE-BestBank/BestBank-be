@@ -15,11 +15,11 @@ env:
     KEY_VAULT_NAME_DEV: BestBank-KV-dev
     KEY_VAULT_NAME_UAT: BestBank-KV-uat
     KEY_VAULT_NAME_PROD: BestBank-KV-prod
-  
+
     BACKEND_WEBAPP_DEV: bestbank-be-dev
     BACKEND_WEBAPP_UAT: bestbank-be-uat
     BACKEND_WEBAPP_PROD: bestbank-be-prod
-    
+
 
 
 jobs:
@@ -58,7 +58,7 @@ jobs:
 
 
   # build the docker image
-  build-and-deploy-dev:
+  build-dev:
     runs-on: ubuntu-latest
     needs: pytests
     outputs:
@@ -107,12 +107,12 @@ jobs:
         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME}}:latest
         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME}}:${{ steps.image-version.outputs.version }}
 
-  build-and-deploy-uat:
+  build-uat:
     if:  (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
       image-version: ${{ steps.image-version.outputs.version }}
-    needs: [pytests, build-and-deploy-dev]
+    needs: [pytests, build-dev]
 
     steps:
     - name: Checkout code
@@ -157,10 +157,10 @@ jobs:
         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME}}:latest
         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME}}:${{ steps.image-version.outputs.version }}
 
-  build-and-deploy-prod:
-    if: github.ref == 'refs/heads/main'
+  build-prod:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    needs: [pytests, build-and-deploy-dev, build-and-deploy-uat]
+    needs: [pytests, build-dev, build-uat]
     outputs:
       image-version: ${{ steps.image-version.outputs.version }}
 
@@ -208,136 +208,53 @@ jobs:
         app-name: ${{ env.BACKEND_WEBAPP_PROD }}
         images: "${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}"
 
-# build:
-#     runs-on: ubuntu-latest
-#     outputs:
-#       image-version: ${{ steps.image-version.outputs.version }}
-#     env:
-#       ENV: ghci
 
-#     steps:
-#     - uses: actions/checkout@v4
+  deploy-dev:
+    runs-on: ubuntu-latest
+    needs: build-dev
+    environment:
+      name: 'Development'
 
-#     - name: Set up Python 3.11
-#       uses: actions/setup-python@v5
-#       with:
-#         python-version: "3.11"
+    steps:
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-#     - name: Upgrade pip
-#       run: |
-#         python -m pip install --upgrade pip
+      - name: Deploy to Azure Web App - Dev
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.BACKEND_WEBAPP_DEV }}
+          images: ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:${{ needs.build-dev.outputs.image-version }}
 
-#     - name: Install dependencies
-#       run: |
-#         pip install -r requirements.txt
+  deploy-uat:
+    runs-on: ubuntu-latest
+    needs: build-uat
+    environment:
+      name: 'UAT'
 
-#     - name: Lint with flake8
-#       run: |
-#         pip install flake8 pytest
-#         # stop the build if there are Python syntax errors or undefined names
-#         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-#         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-#         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    steps:
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-#     - name: Test with pytest
-#       run: |
-#         python -m pytest --cov=iebank_api -v
+      - name: Deploy to Azure Web App - UAT
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.BACKEND_WEBAPP_UAT }}
+          images: ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:${{ needs.build-uat.outputs.image-version }}
 
-#     - name: Upload artifact for deployment jobs
-#       uses: actions/upload-artifact@v4
-#       with:
-#         name: python-app
-#         path: |
-#           .
+  deploy-prod:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    needs: [build-uat, build-prod]
 
-#     - name: "Log in to azure"
-#       uses: azure/login@v2
-#       with:
-#         creds: ${{ secrets.AZURE_CREDENTIALS }}
+    steps:
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-#     - name: "Get docker registry credentials"
-#       uses: Azure/cli@v2.1.0
-#       with:
-#         inlineScript: |
-#             echo "REGISTRY_USERNAME=$(az keyvault secret show --name adminUsernameSecretName --vault-name ${{ env.KEY_VAULT_NAME_DEV }} --query value -o tsv)" >> $GITHUB_ENV
-#             echo "REGISTRY_PASSWORD=$(az keyvault secret show --name adminPasswordSecretName0 --vault-name ${{ env.KEY_VAULT_NAME_DEV }} --query value -o tsv)" >> $GITHUB_ENV
-#             echo "REGISTRY_USERNAME=$(az keyvault secret show --name adminUsernameSecretName --vault-name ${{ env.KEY_VAULT_NAME_UAT }} --query value -o tsv)" >> $GITHUB_ENV
-#             echo "REGISTRY_PASSWORD=$(az keyvault secret show --name adminPasswordSecretName0 --vault-name ${{ env.KEY_VAULT_NAME_UAT }} --query value -o tsv)" >> $GITHUB_ENV
-
-#     - name: "Login to Docker Registry - DEV"
-#       uses: azure/docker-login@v2
-#       with:
-#         login-server: ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}
-#         username: ${{ env.REGISTRY_USERNAME_DEV }}
-#         password: ${{ env.REGISTRY_PASSWORD_DEV }}
-
-#     - name: "Login to Docker Registry - UAT"
-#       uses: azure/docker-login@v2
-#       with:
-#         login-server: ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}
-#         username: ${{ env.REGISTRY_USERNAME_UAT }}
-#         password: ${{ env.REGISTRY_PASSWORD_UAT }}
-
-#     - name: Set image version
-#       id: image-version
-#       run: |
-#           echo "version=$(date +'%Y.%m.%d.%H.%M')" >> $GITHUB_OUTPUT
-
-#     - name: Docker Build and Push
-#       run: |
-#         # Step 1: Build the image once
-#         docker build . -t ${{ env.IMAGE_NAME }}:latest
-#         docker build . -t ${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
-
-#         # Step 2: Tag the image for each registry
-#         docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:latest
-#         docker tag ${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }} ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
-#         docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:latest
-#         docker tag ${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }} ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
-#         # docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:latest
-#         # docker tag ${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }} ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
-
-#         # Step 3: Push the image to each registry
-#         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:latest
-#         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
-#         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:latest
-#         docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
-#         # docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:latest
-#         # docker push ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
-
-
-#   deploy-dev:
-#     runs-on: ubuntu-latest
-#     needs: build
-#     environment:
-#         name: "Development"
-#         url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-#     steps:
-#         - uses: azure/login@v2
-#           with:
-#             creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-#         - name: "Deploy to Azure Web App - Dev"
-#           uses: azure/webapps-deploy@v3
-#           id: deploy-to-webapp
-#           with:
-#             app-name: ${{ env.BACKEND_WEBAPP_DEV }}
-#             images: "${{ env.DOCKER_REGISTRY_SERVER_URL_DEV }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image-version }}"
-
-#   deploy-uat:
-#     runs-on: ubuntu-latest
-#     needs: [build, deploy-dev]
-#     environment:
-#         name: "UAT"
-#         url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-#     steps:
-        # - uses: azure/login@v2
-        #   with:
-        #     creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-        # - name: "Deploy to Azure Web App - Dev"
-        #   uses: azure/webapps-deploy@v3
-        #   id: deploy-to-webapp
-        #   with:
-        #     app-name: ${{ env.BACKEND_WEBAPP_UAT }}
-        #     images: "${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image-version }}"
+      - name: Deploy to Azure Web App - Prod
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.BACKEND_WEBAPP_PROD }}
+          images: ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:${{ needs.build-uat.outputs.image-version }}
