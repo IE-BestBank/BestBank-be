@@ -26,8 +26,7 @@
                                     "pm.test('Response contains Hello, World!', function () {",
                                     "    pm.expect(pm.response.text()).to.include('Hello, World!');",
                                     "});"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ]
@@ -50,8 +49,7 @@
                                     "pm.test('Response contains Database URL', function () {",
                                     "    pm.expect(pm.response.text()).to.include('Database URL:');",
                                     "});"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ]
@@ -62,42 +60,40 @@
             "name": "Accounts",
             "item": [
                 {
-                    {
-  "name": "Create Account",
-  "request": {
-    "method": "POST",
-    "url": "{{base_url}}/accounts",
-    "header": [
-      {
-        "key": "Content-Type",
-        "value": "application/json"
-      }
-    ],
-    "body": {
-      "mode": "raw",
-      "raw": "{\"name\": \"Savings\", \"currency\": \"USD\", \"country\": \"US\", \"user_id\": {{user_id}}}"
-    },
-    "description": "Create a new account for a registered user."
-  },
-  "event": [
-    {
-      "listen": "test",
-      "script": {
-        "exec": [
-          "pm.test('Status code is 201', function () {",
-          "    pm.response.to.have.status(201);",
-          "});",
-          "pm.test('Account creation response contains ID', function () {",
-          "    let jsonResponse = pm.response.json();",
-          "    pm.expect(jsonResponse).to.have.property('id');",
-          "});"
-        ],
-        "type": "text/javascript"
-      }
-    }
-  ]
-}
-,
+                    "name": "Create Account",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/accounts",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"name\": \"Savings\", \"currency\": \"USD\", \"country\": \"US\", \"user_id\": {{user_id}}}"
+                        },
+                        "description": "Create a new account for a registered user."
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "pm.test('Response contains account details', function () {",
+                                    "    let jsonResponse = pm.response.json();",
+                                    "    pm.expect(jsonResponse).to.have.property('id');",
+                                    "    pm.expect(jsonResponse.name).to.eql('Savings');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
                 {
                     "name": "Get All Accounts",
                     "request": {
@@ -116,8 +112,7 @@
                                     "pm.test('Accounts list is an array', function () {",
                                     "    pm.expect(pm.response.json().accounts).to.be.an('array');",
                                     "});"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ]
@@ -156,9 +151,9 @@
                                     "    let jsonResponse = pm.response.json();",
                                     "    pm.expect(jsonResponse).to.have.property('id');",
                                     "    pm.environment.set('user_id', jsonResponse.id);",
+                                    "    pm.environment.set('username', jsonResponse.username);",
                                     "});"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ]
@@ -176,7 +171,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\"username\": \"user_{{$timestamp}}\", \"password\": \"password123\"}"
+                            "raw": "{\"username\": \"{{username}}\", \"password\": \"password123\"}"
                         },
                         "description": "Login with a registered user."
                     },
@@ -191,8 +186,7 @@
                                     "pm.test('Response contains user details', function () {",
                                     "    pm.expect(pm.response.json()).to.have.property('id');",
                                     "});"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ]
