@@ -20,7 +20,8 @@ env:
     BACKEND_WEBAPP_UAT: bestbank-be-uat
     BACKEND_WEBAPP_PROD: bestbank-be-prod
 
-
+    KEY_VAULT_SECRET_NAME_ACR_USERNAME: adminUsernameSecretName
+    KEY_VAULT_SECRET_NAME_ACR_PASSWORD: adminPasswordSecretName0
 
 
 jobs:
@@ -241,4 +242,3 @@ jobs:
         with:
           app-name: ${{ env.BACKEND_WEBAPP_PROD }}
           images: ${{ env.DOCKER_REGISTRY_SERVER_URL_PROD }}/${{ env.IMAGE_NAME }}:${{ needs.build-prod.outputs.image-version }}
-
