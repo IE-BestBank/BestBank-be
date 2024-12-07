@@ -66,6 +66,12 @@
                     "request": {
                         "method": "POST",
                         "url": "{{base_url}}/accounts",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\"name\": \"Savings\", \"currency\": \"USD\", \"country\": \"US\", \"user_id\": 1}"
@@ -123,6 +129,12 @@
                     "request": {
                         "method": "POST",
                         "url": "{{base_url}}/users/register",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\"username\": \"testuser\", \"password\": \"password123\", \"password2\": \"password123\"}"
@@ -151,6 +163,12 @@
                     "request": {
                         "method": "POST",
                         "url": "{{base_url}}/users/login",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\"username\": \"testuser\", \"password\": \"password123\"}"
