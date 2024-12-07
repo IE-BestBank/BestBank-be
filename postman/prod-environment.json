@@ -1,1 +1,11 @@
-#u
+{
+    "id": "prod-environment",
+    "name": "Production Environment",
+    "values": [
+        {
+            "key": "base_url",
+            "value": "https://bestbank-be-prod.azurewebsites.net",
+            "enabled": true
+        }
+    ]
+}
