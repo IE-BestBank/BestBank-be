@@ -74,9 +74,9 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\"name\": \"Savings\", \"currency\": \"USD\", \"country\": \"US\", \"user_id\": 1}"
+                            "raw": "{\"name\": \"Savings\", \"currency\": \"USD\", \"country\": \"US\", \"user_id\": {{user_id}}}"
                         },
-                        "description": "Create a new account."
+                        "description": "Create a new account for a registered user."
                     },
                     "event": [
                         {
@@ -87,7 +87,9 @@
                                     "    pm.response.to.have.status(201);",
                                     "});",
                                     "pm.test('Account creation response contains ID', function () {",
-                                    "    pm.expect(pm.response.json()).to.have.property('id');",
+                                    "    let jsonResponse = pm.response.json();",
+                                    "    pm.expect(jsonResponse).to.have.property('id');",
+                                    "    pm.environment.set('account_id', jsonResponse.id);",
                                     "});"
                                 ],
                                 "type": "text/javascript"
@@ -150,7 +152,9 @@
                                     "    pm.response.to.have.status(201);",
                                     "});",
                                     "pm.test('Response contains user ID', function () {",
-                                    "    pm.expect(pm.response.json()).to.have.property('id');",
+                                    "    let jsonResponse = pm.response.json();",
+                                    "    pm.expect(jsonResponse).to.have.property('id');",
+                                    "    pm.environment.set('user_id', jsonResponse.id);",
                                     "});"
                                 ],
                                 "type": "text/javascript"
