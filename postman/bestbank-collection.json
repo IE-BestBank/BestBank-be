@@ -72,7 +72,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\"name\": \"Savings\", \"account_number\": \"1234567890\", \"currency\": \"USD\", \"country\": \"US\", \"user_id\": {{user_id}}}"
+                            "raw": "{\"name\": \"Savings\", \"currency\": \"USD\", \"country\": \"US\", \"user_id\": {user_id}}"
                         },
                         "description": "Create a new account for a registered user."
                     },
@@ -148,22 +148,28 @@
                     "event": [
                         {
                            "listen": "test",
+        "event": [
+    {
+        "listen": "test",
         "script": {
             "exec": [
                 "pm.test('Status code is 200', function () {",
                 "    pm.response.to.have.status(200);",
                 "});",
                 "",
-                "pm.test('Response contains user ID', function () {",
+                "pm.test('Response contains user ID and username', function () {",
                 "    let jsonResponse = pm.response.json();",
                 "    pm.expect(jsonResponse).to.have.property('id');",
+                "    pm.expect(jsonResponse).to.have.property('username');",
+                "",
+                "    // Save user details to environment variables",
                 "    pm.environment.set('user_id', jsonResponse.id);",
                 "    pm.environment.set('username', jsonResponse.username);",
                 "});"
-                                ]
-                            }
-                        }
-                    ]
+            ]
+        }
+    }
+]
                 },
                 {
                     "name": "Login User",
@@ -191,7 +197,10 @@
                                     "    pm.response.to.have.status(200);",
                                     "});",
                                     "pm.test('Response contains user details', function () {",
-                                    "    pm.expect(pm.response.json()).to.have.property('id');",
+                                    "    let jsonResponse = pm.response.json();",
+                                    "    console.log('Response:', jsonResponse);",
+                                    "    pm.expect(jsonResponse).to.have.property('id');",
+                                    "    pm.environment.set('user_id', jsonResponse.id);",
                                     "});"
                                 ]
                             }
