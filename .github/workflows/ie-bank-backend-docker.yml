@@ -69,7 +69,7 @@ jobs:
         node-version: "16"
 
     - name: Install Newman
-      run: npm install -g newman
+      run: npm install -g postmanlabs/newman
 
     - name: Run Postman Tests
       run: |
