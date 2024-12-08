@@ -71,7 +71,9 @@ jobs:
     - name: Install Newman
       run: |
         npm info newman
+        npm config set registry http://registry.npmjs.org
         npm install -g git+https://github.com/postmanlabs/newman.git
+        npm install -g newman
 
 
     - name: Run Postman Tests
