@@ -319,3 +319,131 @@ def test_get_transactions(testing_client):
     """
     response = testing_client.get('/transactions')
     assert response.status_code == 200
+
+
+# /admin/users (GET)
+def test_get_users(testing_client):
+    """
+    GIVEN a Flask application
+    WHEN the '/admin/users' page is requested (GET)
+    THEN check the response is valid
+    """
+    response = testing_client.get('/admin/users?admin_id=1')
+    assert response.status_code == 200
+
+# /admin/users (POST)
+def test_create_user_admin(testing_client):
+    """
+    GIVEN a Flask application
+    WHEN the '/admin/users' page is posted to (POST)
+    THEN check the response is valid
+    """
+    response = testing_client.post('/admin/users', json={'username': 'testadmin', 'password': 'mypassword', 'admin_id': 1})
+    user = User.query.filter_by(username='testadmin').first()
+
+    assert response.status_code == 200
+    assert user.username == 'testadmin'
+    assert user.check_password('mypassword')
+    assert len(user.accounts) == 1  # default account is created
+
+# /admin/users/<int:id> (PUT)
+def test_update_username_admin(testing_client):
+    """
+    GIVEN a Flask application
+    WHEN the '/admin/users/<int:id>' page is updated (PUT) with valid data
+    THEN check the response is valid
+    """
+
+    # create one user
+    response = testing_client.post('/admin/users', json={'username': 'testadmin', 'password': 'mypassword', 'admin_id': 1})
+    assert response.status_code == 200
+    user_data = response.get_json()
+    user_id = user_data['id']
+
+    user = User.query.filter_by(username='testadmin').first()
+    assert user is not None
+
+    # check the values are updated to the new values
+    put_response = testing_client.put(f'/admin/users/{user_id}', json={'new_username': 'testadmin2', 'new_password': '', 'admin_id': 1})
+    assert response.status_code == 200
+    json_data = put_response.get_json()
+
+    assert json_data['username'] == 'testadmin2'
+    assert user.check_password('mypassword')
+
+# /admin/users/<int:id> (PUT)
+def test_update_password_admin(testing_client):
+    """
+    GIVEN a Flask application
+    WHEN the '/admin/users/<int:id>' page is updated (PUT) with valid data
+    THEN check the response is valid
+    """
+
+    # create one user
+    response = testing_client.post('/admin/users', json={'username': 'testadmin', 'password': 'mypassword', 'admin_id': 1})
+    assert response.status_code == 200
+    user_data = response.get_json()
+    user_id = user_data['id']
+
+    user = User.query.filter_by(username='testadmin').first()
+    assert user is not None
+    assert user.check_password('mypassword')
+
+    # check the values are updated to the new values
+    put_response = testing_client.put(f'/admin/users/{user_id}', json={'new_username': '', 'new_password': 'mypassword2', 'admin_id': 1})
+    assert response.status_code == 200
+    json_data = put_response.get_json()
+
+    user = User.query.filter_by(username='testadmin').first() # update the user object
+    assert user is not None
+    assert json_data['username'] == 'testadmin'
+    assert user.check_password('mypassword2')
+
+# /admin/users/<int:id> (PUT)
+def test_update_username_password_admin(testing_client):
+    """
+    GIVEN a Flask application
+    WHEN the '/admin/users/<int:id>' page is updated (PUT) with valid data
+    THEN check the response is valid
+    """
+
+    # create one user
+    response = testing_client.post('/admin/users', json={'username': 'testadmin', 'password': 'mypassword', 'admin_id': 1})
+    assert response.status_code == 200
+    user_data = response.get_json()
+    user_id = user_data['id']
+
+    user = User.query.filter_by(username='testadmin').first()
+    assert user is not None
+    assert user.check_password('mypassword')
+
+    # check the values are updated to the new values
+    put_response = testing_client.put(f'/admin/users/{user_id}', json={'new_username': 'testadmin2', 'new_password': 'mypassword2', 'admin_id': 1})
+    assert response.status_code == 200
+    json_data = put_response.get_json()
+
+    user = User.query.filter_by(username='testadmin2').first() # update the user object
+    assert user is not None
+    assert json_data['username'] == 'testadmin2'
+    assert user.check_password('mypassword2')
+
+
+# /admin/users/<int:id> (DELETE)
+def test_delete_user_admin(testing_client):
+    """
+    GIVEN a Flask application
+    WHEN the '/admin/users/<int:id>' page is deleted (DELETE)
+    THEN check the response is valid and the user is deleted
+    """
+    response = testing_client.post('/admin/users', json={'username': 'testadmin', 'password': 'mypassword', 'admin_id': 1})
+    assert response.status_code == 200
+
+
+    user = User.query.filter_by(username='testadmin').first()
+    assert user is not None
+
+    response = testing_client.delete(f'/admin/users/{user.id}?admin_id=1')
+    assert response.status_code == 200
+
+    user = User.query.filter_by(username='testadmin').first()
+    assert user is None
