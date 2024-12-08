@@ -69,9 +69,8 @@ jobs:
         node-version: "16"
 
     - name: Install Newman
-      run: |
-        npm config set registry https://registry.npmjs.org/
-        npm install -g newman
+      run: npm install -g git+https://github.com/postmanlabs/newman.git
+
 
     - name: Run Postman Tests
       run: |
