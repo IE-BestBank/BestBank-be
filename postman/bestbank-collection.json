@@ -193,8 +193,12 @@
                                     "pm.test('Response contains user details', function () {",
                                     "    let jsonResponse = pm.response.json();",
                                     "    console.log('Response:', jsonResponse);",
-                                    "    pm.expect(jsonResponse).to.have.property('id');",
-                                    "    pm.environment.set('user_id', jsonResponse.id);",
+                                    "    if (jsonResponse) {",
+                                    "        pm.expect(jsonResponse).to.have.property('id');",
+                                    "        pm.environment.set('user_id', jsonResponse.id);",
+                                    "    } else {",
+                                    "        pm.expect(jsonResponse).to.have.property('message');",
+                                    "    }",
                                     "});"
                                 ]
                             }
