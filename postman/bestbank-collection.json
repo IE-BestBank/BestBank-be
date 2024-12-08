@@ -72,7 +72,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\"name\": \"Savings\", \"currency\": \"USD\", \"country\": \"US\", \"user_id\": {user_id}}"
+                            "raw": "{\"name\": \"Savings\", \"currency\": \"USD\", \"country\": \"US\""
                         },
                         "description": "Create a new account for a registered user."
                     },
@@ -82,7 +82,7 @@
         "script": {
             "exec": [
                 "pm.test('Status code is 200', function () {",
-                "    pm.expect(pm.response.code).to.eql(400);",
+                "    pm.expect(pm.response.code).to.eql(200);",
                 "});",
                 "",
                 "pm.test('Response contains account details', function () {",
