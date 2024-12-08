@@ -147,11 +147,32 @@ jobs:
           app-name: ${{ env.BACKEND_WEBAPP_UAT }}
           images: ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:${{ steps.image-version.outputs.version }}
 
+  postman-tests:
+    runs-on: ubuntu-latest
+    needs: [deploy-dev, deploy-uat]
+    env:
+      ENVIROMENT: Dev  # Default environment
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+            node-version: "16"
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Run Postman Tests
+        run: |
+            newman run ./postman/bestbank-collection.json -e ./postman/dev-environment.json
+            newman run ./postman/bestbank-collection.json -e ./postman/uat-environment.json
 
   build-prod:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    needs: [pytests, build-dev, build-uat]
+    needs: [pytests, build-dev, build-uat, postman-tests]
     outputs:
       image-version: ${{ steps.image-version.outputs.version }}
 
@@ -234,31 +255,11 @@ jobs:
           app-name: ${{ env.BACKEND_WEBAPP_UAT }}
           images: ${{ env.DOCKER_REGISTRY_SERVER_URL_UAT }}/${{ env.IMAGE_NAME }}:latest
 
-  postman-tests:
-    runs-on: ubuntu-latest
-    needs: [deploy-dev, deploy-uat]
-    env:
-      ENVIROMENT: Dev  # Default environment
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Install Node.js
-        uses: actions/setup-node@v3
-        with:
-            node-version: "16"
-
-      - name: Install Newman
-        run: npm install -g newman
-
-      - name: Run Postman Tests
-        run: |
-            newman run ./postman/bestbank-collection.json -e ./postman/dev-environment.json
-            newman run ./postman/bestbank-collection.json -e ./postman/uat-environment.json
 
   deploy-prod:
     runs-on: ubuntu-latest
-    needs: [build-prod, postman-tests]
+    needs: build-prod
 
     steps:
       - uses: azure/login@v2
