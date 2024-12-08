@@ -168,7 +168,7 @@ jobs:
   build-prod:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    needs: [pytests, build-dev, build-uat]
+    needs: [pytests, build-dev, build-uat, postman-tests]
     outputs:
       image-version: ${{ steps.image-version.outputs.version }}
 
