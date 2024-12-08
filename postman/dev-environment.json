@@ -1,0 +1,11 @@
+{
+    "id": "dev-environment",
+    "name": "Development Environment",
+    "values": [
+        {
+            "key": "base_url",
+            "value": "https://bestbank-be-dev.azurewebsites.net",
+            "enabled": true
+        }
+    ]
+}

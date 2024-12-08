@@ -50,3 +50,18 @@ class UATConfig(Config):
         DEBUG = True
         DEFAULT_ADMIN_USERNAME = os.getenv('DEFAULT_ADMIN_USERNAME')
         DEFAULT_ADMIN_PASS = os.getenv('DEFAULT_ADMIN_PASS')
+
+
+class ProductionConfig(Config):
+    if os.getenv('ENV') == 'prod':
+        credential = DefaultAzureCredential()
+        SQLALCHEMY_DATABASE_URI = 'postgresql://{dbuser}:{dbpass}@{dbhost}/{dbname}'.format(
+        dbuser=urllib.parse.quote(os.getenv('DBUSER')),
+        dbpass=credential.get_token(
+            'https://ossrdbms-aad.database.windows.net').token,
+            dbhost=os.getenv('DBHOST'),
+            dbname=os.getenv('DBNAME')
+        )
+        DEBUG = True
+        DEFAULT_ADMIN_USERNAME = os.getenv('DEFAULT_ADMIN_USERNAME')
+        DEFAULT_ADMIN_PASS = os.getenv('DEFAULT_ADMIN_PASS')
