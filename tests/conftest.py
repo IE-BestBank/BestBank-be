@@ -1,5 +1,5 @@
 import pytest
-from iebank_api.models import Account, User
+from iebank_api.models import Account, User, create_default_admin
 from iebank_api import db, app
 
 
@@ -8,6 +8,13 @@ from iebank_api import db, app
 def testing_client(scope='module'):
     with app.app_context():
         db.create_all()
+
+        create_default_admin(
+            app.config['DEFAULT_ADMIN_USERNAME'],
+            app.config['DEFAULT_ADMIN_PASS']
+        )
+        print("Created default admin")
+
         user = User('johndoe', 'mypassword')
         user2 = User('janesmith', 'mypassword')
 
@@ -23,6 +30,8 @@ def testing_client(scope='module'):
         db.session.add(account)
         db.session.add(account2)
         db.session.commit()
+
+
 
     with app.test_client() as testing_client:
         yield testing_client
