@@ -1,5 +1,5 @@
 name: Deploy backend to Azure Web App
-
+#poepj
 on:
   pull_request:
     branches: [ "main" ]
@@ -49,9 +49,33 @@ jobs:
           pip install flake8 pytest
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
+          
       - name: Test with pytest
         run: python -m pytest --cov=iebank_api -v
+
+
+  postman-tests:
+    runs-on: ubuntu-latest
+    needs: pytests
+    env:
+      ENVIROMENT: Dev  # Default environment
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: "16"
+
+    - name: Install Newman
+      run: npm install -g newman
+
+    - name: Run Postman Tests
+      run: |
+          newman run ./postman/bestbank-collection.json -e ./postman/dev-environment.json
+          newman run ./postman/bestbank-collection.json -e ./postman/uat-environment.json
+          newman run ./postman/bestbank-collection.json -e ./postman/prod-environment.json   
 
   # build the docker image
   build-dev:
