@@ -80,7 +80,7 @@ jobs:
   # build the docker image
   build-dev:
     runs-on: ubuntu-latest
-    needs: pytests
+    needs: [pytests, postman]
     outputs:
       image-version: ${{ steps.image-version.outputs.version }}
     steps:
