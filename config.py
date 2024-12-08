@@ -62,6 +62,6 @@ class ProductionConfig(Config):
             dbhost=os.getenv('DBHOST'),
             dbname=os.getenv('DBNAME')
         )
-        DEBUG = True
+        DEBUG = False
         DEFAULT_ADMIN_USERNAME = os.getenv('DEFAULT_ADMIN_USERNAME')
         DEFAULT_ADMIN_PASS = os.getenv('DEFAULT_ADMIN_PASS')
